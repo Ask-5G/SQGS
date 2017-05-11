@@ -1,0 +1,96 @@
+<div id="summary_table_div">
+    <div class="clearfix"></div>
+      <div class="col-md-13 col-sm-13 col-xs-13">
+        <div class="x_panel">
+                  <div class="x_title">
+                    <h2>Summary Table</h2>
+                    <ul class="nav navbar-right panel_toolbox">
+                      <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                      </li>
+                      <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><i class="fa fa-wrench"></i></a>
+                        <ul class="dropdown-menu" role="menu">
+                          <li><a href="#">Settings 1</a>
+                          </li>
+                          <li><a href="#">Settings 2</a>
+                          </li>
+                        </ul>
+                      </li>
+                      <li><a class="close-link"><i class="fa fa-close"></i></a>
+                      </li>
+                    </ul>
+                    <div class="clearfix"></div>
+                  </div>
+                  <div id="summary_table" >
+
+
+    <table id="summary_table_id" class="display" width="100%" cellspacing="1">
+          <thead>
+            <tr>
+                <th rowspan="2">Date</th>
+                <th rowspan="2" class="text-center">No of Tractors</th>
+                <th colspan="2" class="text-center">Rolldown</th>
+                <th colspan="2" class="text-center">Final</th>
+                <th colspan="2" class="text-center">Overall</th>
+                <th rowspan="2" class="text-center">Rolldown DPU</th>
+                <th rowspan="2" class="text-center">Final DPU</th>
+                <th rowspan="2" class="text-center">Overall DPU</th>
+            </tr>
+            <tr>
+                <th>RFT OK<small>count</small></th>
+                <th>RFT NOT OK<small>count</small></th>
+                <th>RFT OK<small>count</small></th>
+                <th>RFT NOT OK<small>count</small></th>
+                <th>RFT OK<small>count</small></th>
+                <th>RFT NOT OK<small>count</small></th>
+            </tr>
+          </thead>
+        <tbody class='datatable'>
+            {% for item in items %}
+            <tr>
+              <td>{{item.date}}</td>
+              <td align="center"><a  onclick = "vin_summary('{{item.date}}')" id="vin_summary_href">{{item.no_of_tractors}}</a></td>
+              <td align="center">{{item.rolldown_rft_ok}}</td>
+              <td align="center">{{item.rolldown_rft_not_ok}}</td>
+              <td align="center">{{item.final_rft_ok}}</td>
+              <td align="center">{{item.final_rft_not_ok}}</td>
+              <td align="center">{{item.overall_rft_ok}}</td>
+              <td align="center">{{item.overall_rft_not_ok}}</td>
+              <td align="center">{{item.rolldown_dpu}}</td>
+              <td align="center">{{item.final_dpu}}</td>
+              <td align="center">{{item.overall_dpu}}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+                
+                </div>
+                </div>
+      </div>
+
+<style type="text/css">
+    .datatable td,th {
+  overflow: hidden; /* this is what fixes the expansion */
+  text-overflow: ellipsis; /* not supported in all browsers, but I accepted the tradeoff */
+  white-space: nowrap;
+}
+</style>      
+  <script type="text/javascript">
+    $(document).ready( function () {
+    $('#summary_table_id').DataTable({"scrollX": true});
+    } );
+    var vin_summary = function(date){
+      var url = "/summary/vin/"
+      var data = {"date":date}
+      $.ajax({
+        "type": "POST",
+        "url": url,
+        "data" : data,
+        success: function(data) {
+            $("#vin_table").html(data);
+        },
+      });
+
+    }
+
+  </script>

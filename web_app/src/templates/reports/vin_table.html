@@ -1,0 +1,119 @@
+<div id="vin_table_div">
+    <div class="clearfix"></div>
+      <!-- line graph -->
+      <div class="col-md-13 col-sm-13 col-xs-13">
+        <div class="x_panel">
+                  <div class="x_title">
+                    <h2>Vin Table</h2>
+                    <ul class="nav navbar-right panel_toolbox">
+                      <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                      </li>
+                      <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><i class="fa fa-wrench"></i></a>
+                        <ul class="dropdown-menu" role="menu">
+                          <li><a href="#">Settings 1</a>
+                          </li>
+                          <li><a href="#">Settings 2</a>
+                          </li>
+                        </ul>
+                      </li>
+                      <li><a class="close-link"><i class="fa fa-close"></i></a>
+                      </li>
+                    </ul>
+                    <div class="clearfix"></div>
+                  </div>
+                  <div id="summary_table" >
+
+
+    <table id="vin_table_id" class="display" width="100%" cellspacing="1">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Vin No</th>
+                <th>Defects Opened</th>
+                <th>Defects Closed</th>
+                <th>Roll Down RFT</th>
+                <th>Final RFT</th>
+                <th>Overall RFT</th>
+            </tr>
+        </thead>
+        <tbody class="datatable">
+            {% for data in datas %}
+            <tr>
+              <td>{{data.vin_status.last_modified_date}}</td>
+              <td><a  onclick = "vin_details('{{data.vin_status.vin}}')" id="vin_details_href">{{data.vin_status.vin}}</a>
+              </td>
+              <td align="center">{{data.vin_status.tot_defects}}</td>
+              <td align="center">{{data.vin_status.tot_closure}}</td>
+              <td>{{data.vin_status.status}}</td>
+              {% if data.final_rft %}
+                <td>{{data.final_rft.final_status}}</td>
+                <td>{{data.final_rft.overall_status}}</td>
+              {% else %}
+                <td align="center">-</td>
+                <td align="center">-</td>
+              {% endif %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+                
+                </div>
+                </div>
+      </div>
+
+  <script type="text/javascript">
+
+    $(document).ready( function () {
+      $('#vin_table_id').DataTable({"scrollX": true});
+    });
+
+    var vin_details = function(vin_number){
+      var url = "/summary/vin_details/"
+      var data = {"vin_number":vin_number}
+      $.ajax({
+        "type": "POST",
+        "url": url,
+        "data" : data,
+        success: function(data) {
+            $("#vin_details_table").html(data.vin_table);
+            $("#inspection_defect_details_table").html(data.inspection_defect_table)
+        },
+      });
+
+    }
+
+    $.ajaxSetup({
+      beforeSend: function(xhr, settings) {
+         function getCookie(name) {
+             var cookieValue = null;
+             if (document.cookie && document.cookie != '') {
+                 var cookies = document.cookie.split(';');
+                 for (var i = 0; i < cookies.length; i++) {
+                     var cookie = jQuery.trim(cookies[i]);
+                     // Does this cookie string begin with the name we want?
+                     if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                         cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                         break;
+                     }
+                 }
+             }
+             return cookieValue;
+         }
+         if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+             // Only send the token to relative URLs i.e. locally.
+             xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+         }
+      }
+    });
+
+  </script>
+
+
+  <style type="text/css">
+    .datatable td,th {
+  overflow: hidden; /* this is what fixes the expansion */
+  text-overflow: ellipsis; /* not supported in all browsers, but I accepted the tradeoff */
+  white-space: nowrap;
+}
+  </style>

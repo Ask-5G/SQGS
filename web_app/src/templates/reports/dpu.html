@@ -1,0 +1,59 @@
+{% extends "common/base.html" %}
+{% load staticfiles %}
+
+{% block top_tiles %}
+  {% include 'reports/dpu_filter.html' %}
+{% endblock %}
+
+{% block content %}
+  {% include 'reports/dpu_chart.html' %}
+{% endblock %}
+
+
+{% block script %}
+<script>
+$(document).ready(function(){
+
+/* Generating CSRF-TOKEN for AJAX POST*/
+$.ajaxSetup({
+     beforeSend: function(xhr, settings) {
+         function getCookie(name) {
+             var cookieValue = null;
+             if (document.cookie && document.cookie != '') {
+                 var cookies = document.cookie.split(';');
+                 for (var i = 0; i < cookies.length; i++) {
+                     var cookie = jQuery.trim(cookies[i]);
+                     // Does this cookie string begin with the name we want?
+                     if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                         cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                         break;
+                     }
+                 }
+             }
+             return cookieValue;
+         }
+         if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+             // Only send the token to relative URLs i.e. locally.
+             xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+         }
+     }
+});
+
+$("#dpu_search").click(function(e){
+      e.preventDefault();
+
+      var frm = $(this).closest('form');
+
+      $.ajax({
+        "type": frm.attr('method'),
+        "url": frm.attr('action'),
+        "data" : frm.serialize(),
+        success: function(data) {
+            $("#dpu_date_wise").html("");
+            dpu_date_wise_charts(data)
+        },
+    });
+  });
+});
+</script>
+{% endblock %}

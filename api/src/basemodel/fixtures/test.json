@@ -1,0 +1,10 @@
+[
+  {
+    "model": "basemodel.Parts",
+    "pk": 1,
+    "fields": {
+      "description": "FIP to Diesel tank mounting pipe line banjo"
+     
+      }
+  }
+]

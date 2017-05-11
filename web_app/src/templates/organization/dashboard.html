@@ -1,0 +1,31 @@
+{% extends "common/base.html" %}
+{% load staticfiles %}
+
+{% block top_tiles %}
+<!-- top tiles -->
+<div id="top_tiles">
+  {% include 'organization/top_tiles.html' %}
+</div>
+<!-- /top tiles -->
+<div id="dash_chart">
+  {% include 'organization/dash_chart.html' %}
+</div>
+{% endblock %}
+
+{% block script %}
+<script type="text/javascript">
+  function refresh() {
+    $.ajax({ 
+        url: '/production/',
+        success: function(data) {
+            $('#top_tiles').html(data);
+        }
+    });
+    setInterval("refresh()", 50000);
+}
+
+$(function(){
+    refresh();
+});
+</script>
+{% endblock %}

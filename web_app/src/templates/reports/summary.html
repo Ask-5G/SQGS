@@ -1,0 +1,69 @@
+{% extends "common/base.html" %}
+{% load staticfiles %}
+
+ {% block styles %}
+ <link href='{% static "build/DataTables-1.10.15/media/css/jquery.dataTables.css" %}' rel="stylesheet">
+ {% endblock %}
+
+{% block top_tiles %}
+  {% include 'reports/summary_filter.html' %}
+{% endblock %}
+
+
+{% block content %}
+  <div id="summary_table">
+  </div>
+  <div id="vin_table">
+  </div>
+  <div id="vin_details_table">
+  </div>
+  <div id="inspection_defect_details_table">
+  </div>
+  <br>
+{% endblock %}
+
+{% block script %}
+<script src='{% static "build/DataTables-1.10.15/media/js/jquery.dataTables.js" %}'></script>
+
+<script type="text/javascript">
+
+$("#summary_search").click(function(e){
+      e.preventDefault();
+
+      var frm = $(this).closest('form');
+
+      $.ajax({
+        "type": frm.attr('method'),
+        "url": frm.attr('action'),
+        "data" : frm.serialize(),
+        success: function(data) {
+            $("#summary_table").html(data);
+        },
+    });
+  });
+/* Generating CSRF-TOKEN for AJAX POST*/
+$.ajaxSetup({
+     beforeSend: function(xhr, settings) {
+         function getCookie(name) {
+             var cookieValue = null;
+             if (document.cookie && document.cookie != '') {
+                 var cookies = document.cookie.split(';');
+                 for (var i = 0; i < cookies.length; i++) {
+                     var cookie = jQuery.trim(cookies[i]);
+                     // Does this cookie string begin with the name we want?
+                     if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                         cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                         break;
+                     }
+                 }
+             }
+             return cookieValue;
+         }
+         if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+             // Only send the token to relative URLs i.e. locally.
+             xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+         }
+     }
+});
+</script>
+{% endblock %}

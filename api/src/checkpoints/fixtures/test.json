@@ -1,0 +1,49 @@
+[
+  {
+    "model": "checkpoints.Repairs",
+    "pk": 1,
+    "fields": {
+      "description": "Replaced",
+      "defect_id" : "1"
+          
+      }
+  },
+  {
+    "model": "checkpoints.Defects",
+    "pk": 2,
+    "fields": {
+      "description": "Demasking Not Done",
+      "defectcategories" : "1" ,
+      "sourcegate"  : "1"
+      
+      }
+  },
+  {
+    "model": "checkpoints.Defects",
+    "pk": 3,
+    "fields": {
+      "description": "Over spray",
+      "defectcategories" : "1" ,
+      "sourcegate"  : "1"
+      
+      }
+  },{
+    "model": "checkpoints.Defects",
+    "pk": 4,
+    "fields": {
+      "description": "Masking Not Done",
+      "defectcategories" : "1" ,
+      "sourcegate"  : "1"
+      
+      }
+  },{
+    "model": "checkpoints.Defects",
+    "pk": 5,
+    "fields": {
+      "description": "Demasking Not Done",
+      "defectcategories" : "1" ,
+      "sourcegate"  : "1"
+      
+      }
+  }
+]
