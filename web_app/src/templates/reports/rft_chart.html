@@ -26,39 +26,58 @@
             </div>
             <div class="x_content">
                 <div class="col-md-2">
+                    <label for="id_rft_models">Plants:</label>
+                    <select id="id_rft_models" class="form-control" required>
+                        {% for plant in plants %}
+                            <option value="{{ plant.id }}">{{ plant }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="id_rft_models">Shifts:</label>
+                    <select id="id_rft_models" class="form-control" required>
+                        {% for shift in shifts %}
+                            <option value="{{ shift.id }}">{{ shift }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="id_rft_models">Base Models:</label>
+                    <select id="id_rft_models" class="form-control" required>
+                        <option value=''>635</option>
+                        <option value=''>574</option>
+                        <option value=''>636</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
                     <label for="id_rft_models">Models:</label>
                     <select id="id_rft_models" class="form-control" required>
                         {% for model in models %}
                             <option value="{{ model.id }}">{{ model }}</option>
                         {% endfor %}
                     </select>
-                    <br>
+                </div>
+                <div class="col-md-2">
                     <label for="id_rft_stations">Stations:</label>
                     <select id="id_rft_stations" class="form-control" required>
                         {% for station in stations %}
                             <option value="{{ station.id }}">{{ station }}</option>
                         {% endfor %}
                     </select>
-                    <br>
+                </div>
+                <div class="col-md-2">
                     <label for="id_rft_stations">Defect Category:</label>
                     <select id="id_rft_stations" class="form-control" required>
                         <option value=''>Appearance</option>
                         <option value=''>Critical</option>
                         <option value=''>Functional</option>
                     </select>
-                    <br>
-                    <label for="id_rft_stations">Source Gate:</label>
-                    <select id="id_rft_stations" class="form-control" required>
-                        <option value=''>Parts</option>
-                        <option value=''>Process</option>
-                        <option value=''>PaintShop</option>
-                    </select>
                 </div>
-
-                <div class="col-xs-10">
-                    <div id="rolldown_date_wise" style="width:100%; height:280px;"></div>
-                    <div id="rolldown_model_wise" style="width:100%; height:280px;"></div>
-                    <div id="rolldown_station_wise" style="width:100%; height:280px;"></div>
+                <br>
+                <div class="col-xs-12" style="margin-top: 30px;">
+                    <div id="rolldown_date_wise" style="width:100%; height:300px;"></div>
+                    <div id="rolldown_model_wise" style="width:100%; height:300px;"></div>
+                    <div id="rolldown_station_wise" style="width:100%; height:300px;"></div>
                 </div>
                 <div class="clearfix"></div>
             </div>
@@ -91,20 +110,46 @@
             </div>
             <div class="x_content">
                 <div class="col-md-2">
+                    <label for="id_rft_models">Plants:</label>
+                    <select id="id_rft_models" class="form-control" required>
+                        {% for plant in plants %}
+                            <option value="{{ plant.id }}">{{ plant }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="id_rft_models">Shifts:</label>
+                    <select id="id_rft_models" class="form-control" required>
+                        {% for shift in shifts %}
+                            <option value="{{ shift.id }}">{{ shift }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="id_rft_models">Base Models:</label>
+                    <select id="id_rft_models" class="form-control" required>
+                        <option value=''>635</option>
+                        <option value=''>574</option>
+                        <option value=''>636</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
                     <label for="id_final_models">Models:</label>
                     <select id="id_final_models" class="form-control" required>
                         {% for model in models %}
                             <option value="{{ model.id }}">{{ model }}</option>
                         {% endfor %}
                     </select>
-                    <br>
+                </div>
+                <div class="col-md-2">
                     <label for="id_rft_stations">Defect Category:</label>
                     <select id="id_rft_stations" class="form-control" required>
                         <option value=''>Appearance</option>
                         <option value=''>Critical</option>
                         <option value=''>Functional</option>
                     </select>
-                    <br>
+                </div>
+                <div class="col-md-2">
                     <label for="id_rft_stations">Source Gate:</label>
                     <select id="id_rft_stations" class="form-control" required>
                         <option value=''>Parts</option>
@@ -112,10 +157,10 @@
                         <option value=''>PaintShop</option>
                     </select>
                 </div>
-
-                <div class="col-xs-10">
-                    <div id="final_date_wise" style="width:100%; height:280px;"></div>
-                    <div id="final_model_wise" style="width:100%; height:280px;"></div>
+                <br>
+                <div class="col-xs-12" style="margin-top: 30px;">
+                    <div id="final_date_wise" style="width:100%; height:300px;"></div>
+                    <div id="final_model_wise" style="width:100%; height:300px;"></div>
 
                 </div>
                 <div class="clearfix"></div>
@@ -148,20 +193,46 @@
             </div>
             <div class="x_content">
                 <div class="col-md-2">
+                    <label for="id_rft_models">Plants:</label>
+                    <select id="id_rft_models" class="form-control" required>
+                        {% for plant in plants %}
+                            <option value="{{ plant.id }}">{{ plant }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="id_rft_models">Shifts:</label>
+                    <select id="id_rft_models" class="form-control" required>
+                        {% for shift in shifts %}
+                            <option value="{{ shift.id }}">{{ shift }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="id_rft_models">Base Models:</label>
+                    <select id="id_rft_models" class="form-control" required>
+                        <option value=''>635</option>
+                        <option value=''>574</option>
+                        <option value=''>636</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
                     <label for="id_overall_models">Models:</label>
                     <select id="id_overall_models" class="form-control" required>
                         {% for model in models %}
                             <option value="{{ model.id }}">{{ model }}</option>
                         {% endfor %}
                     </select>
-                    <br>
+                </div>
+                <div class="col-md-2">
                     <label for="id_rft_stations">Defect Category:</label>
                     <select id="id_rft_stations" class="form-control" required>
                         <option value=''>Appearance</option>
                         <option value=''>Critical</option>
                         <option value=''>Functional</option>
                     </select>
-                    <br>
+                </div>
+                <div class="col-md-2">
                     <label for="id_rft_stations">Source Gate:</label>
                     <select id="id_rft_stations" class="form-control" required>
                         <option value=''>Parts</option>
@@ -169,10 +240,10 @@
                         <option value=''>PaintShop</option>
                     </select>
                 </div>
-
-                <div class="col-xs-10">
-                    <div id="overall_date_wise" style="width:100%; height:280px;"></div>
-                    <div id="overall_model_wise" style="width:100%; height:280px;"></div>
+                <br>
+                <div class="col-xs-12" style="margin-top: 30px;">
+                    <div id="overall_date_wise" style="width:100%; height:300px;"></div>
+                    <div id="overall_model_wise" style="width:100%; height:300px;"></div>
 
                 </div>
                 <div class="clearfix"></div>

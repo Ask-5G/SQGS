@@ -14,6 +14,22 @@ from dateutil.parser import parse
 
 class Common(object):
 
+    def get_plants(self, plant):
+        if plant != None:
+            plants = Plants.objects.filter(id=plant)
+        else:
+            plants = Plants.objects.all()
+
+        return plants
+
+    def get_shifts(self, plant):
+        if plant != None:
+            shifts = Shifts.objects.filter(plants=plant)
+        else:
+            shifts = Shifts.objects.all()
+
+        return shifts
+
     def get_models(self, plant):
         if plant != None:
             plant_models = ModelStations.objects.filter(station__cells__plants=plant).values_list('model', flat=True)
@@ -40,41 +56,38 @@ class Common(object):
             _date_list.append(_date.strftime('%d-%m-%Y'))
         return _date_list
 
+    def get_vin_details_by_model(self, model):
+        return VinDetails.objects.filter(model=model)
+
     def get_rolldown_status_by_date(self, _date):
-        _date = _date.split('-')
-        _date.reverse()
-        return VinStatus.objects.filter(last_modified_date__contains='-'.join(_date))
+        return VinStatus.objects.filter(last_modified_date__contains=parse(_date).strftime('%Y-%d-%m'))
 
     def get_rolldown_status_by_model(self, _date, model):
-        _date = _date.split('-')
-        _date.reverse()
-        vin = VinDetails.objects.filter(model=model).filter(timestamp__contains='-'.join(_date))
+        vin_by_model = self.get_vin_details_by_model(model)
+        vin = vin_by_model.filter(timestamp__contains=parse(_date).strftime('%Y-%d-%m'))
         vin_status_obj = VinStatus.objects.filter(vin__in=set(vin))
         return vin_status_obj
 
     def get_rolldown_status_by_station(self, _date, station):
-        _date = _date.split('-')
-        _date.reverse()
-        vin_status_obj = Verification.objects.filter(stations=station).filter(timestamp__contains='-'.join(_date))
+        vin_status_obj = Verification.objects.filter(stations=station).filter(timestamp__contains=parse(_date).strftime('%Y-%d-%m'))
         return vin_status_obj
 
+    def get_final_status_by_date(self, _date):
+        return FinalRFT.objects.filter(last_modified_date__contains=parse(_date).strftime('%Y-%d-%m'))
+
     def get_final_status_by_model(self, _date, model):
-        _date = _date.split('-')
-        _date.reverse()
-        vin = VinDetails.objects.filter(model=model).filter(timestamp__contains='-'.join(_date))        
+        vin_by_model = self.get_vin_details_by_model(model)
+        vin = vin_by_model.filter(timestamp__contains=parse(_date).strftime('%Y-%d-%m'))
         final_obj = FinalRFT.objects.filter(vin__in=set(vin))
-        #print final_obj
-        #vin_status_obj = VinStatus.objects.filter(vin__in=set(vin))
         return final_obj
 
+    def get_overall_status_by_date(self, _date):
+        return FinalRFT.objects.filter(last_modified_date__contains=parse(_date).strftime('%Y-%d-%m'))
 
     def get_overall_status_by_model(self, _date, model):
-        _date = _date.split('-')
-        _date.reverse()
-        vin = VinDetails.objects.filter(model=model).filter(timestamp__contains='-'.join(_date))        
+        vin_by_model = self.get_vin_details_by_model(model)
+        vin = vin_by_model.filter(timestamp__contains=parse(_date).strftime('%Y-%d-%m'))        
         overall_obj = FinalRFT.objects.filter(vin__in=set(vin))
-        #print overall_obj
-        #vin_status_obj = VinStatus.objects.filter(vin__in=set(vin))
         return overall_obj
 
     def get_dpu_by_date(self, _date):
@@ -83,17 +96,6 @@ class Common(object):
         dpu_obj = DefectsPerUnit.objects.filter(date__contains='-'.join(_date))
         return dpu_obj
 
-    def get_final_status_by_date(self, _date):
-        _date = _date.split('-')
-        _date.reverse()
-        final_obj = FinalRFT.objects.filter(last_modified_date__contains='-'.join(_date))
-        return final_obj
-
-    def get_overall_status_by_date(self, _date):
-        _date = _date.split('-')
-        _date.reverse()
-        overall_obj = FinalRFT.objects.filter(last_modified_date__contains='-'.join(_date))
-        return overall_obj
 
 class RftView(FormView):
     common = Common()
@@ -103,6 +105,9 @@ class RftView(FormView):
         plant = 1
         data = {
         'username': 'Guest User',
+        'plants': self.common.get_plants(plant),
+        'shifts': self.common.get_shifts(plant),
+        # 'basemodel': self.common.get_base_models(plant),
         'models': self.common.get_models(plant),
         'stations': self.common.get_stations(plant),
         }
@@ -120,6 +125,7 @@ class RftSearchView(View):
 
             rft_ok.append(overall_obj.filter(overall_status='RFT OK').count())
             not_ok.append(overall_obj.filter(overall_status='RFT NOT OK').count())
+
             if overall_obj.filter(overall_status='RFT OK').count() != 0:
                 percentage = float("{0:.2f}".format((overall_obj.filter(overall_status='RFT OK').count()/float(len(overall_obj)))*100))
             else:
@@ -151,6 +157,7 @@ class RftSearchView(View):
 
             rft_ok.append(final_obj.filter(final_status='RFT OK').count())
             not_ok.append(final_obj.filter(final_status='RFT NOT OK').count())
+
             if final_obj.filter(final_status='RFT OK').count() != 0:
                 percentage = float("{0:.2f}".format((final_obj.filter(final_status='RFT OK').count()/float(len(final_obj)))*100))
             else:
@@ -182,6 +189,7 @@ class RftSearchView(View):
 
             rft_ok.append(vin_status_obj.filter(status='RFT OK').count())
             not_ok.append(vin_status_obj.filter(status='RFT NOT OK').count())
+
             if vin_status_obj.filter(status='RFT OK').count() != 0:
                 percentage = float("{0:.2f}".format((vin_status_obj.filter(status='RFT OK').count()/float(len(vin_status_obj)))*100))
             else:
@@ -212,6 +220,7 @@ class RftSearchView(View):
         rolldown = self.rolldown(date_list)
         final = self.final(date_list)
         overall = self.overall(date_list)
+
         data = {
             'rolldown': rolldown,
             'final': final,
@@ -232,6 +241,7 @@ class RftRolldownModelView(View):
             
             rft_ok.append(vin_status_obj.filter(status='RFT OK').count())
             not_ok.append(vin_status_obj.filter(status='RFT NOT OK').count())
+
             if vin_status_obj.filter(status='RFT OK').count() != 0:
                 percentage = float("{0:.2f}".format((vin_status_obj.filter(status='RFT OK').count()/float(len(vin_status_obj)))*100))
             else:
@@ -275,6 +285,7 @@ class RftRolldownStationView(View):
             
             rft_ok.append(vin_status_obj.filter(status='RFT OK').count())
             not_ok.append(vin_status_obj.filter(status='RFT NOT OK').count())
+
             if vin_status_obj.filter(status='RFT OK').count() != 0:
                 percentage = float("{0:.2f}".format((vin_status_obj.filter(status='RFT OK').count()/float(len(vin_status_obj)))*100))
             else:
@@ -315,9 +326,9 @@ class RftFinalModelView(View):
         mark_data = []     
         for _date in date_list:
             final_status_obj = self.common.get_final_status_by_model(_date, model)  
-            #print final_status_obj
             rft_ok.append(final_status_obj.filter(final_status='RFT OK').count())
             not_ok.append(final_status_obj.filter(final_status='RFT NOT OK').count())
+
             if final_status_obj.filter(final_status='RFT OK').count() != 0:
                 percentage = float("{0:.2f}".format((final_status_obj.filter(final_status='RFT OK').count()/float(len(final_status_obj)))*100))
             else:
@@ -358,9 +369,11 @@ class RftOverallModelView(View):
         not_ok = []  
         mark_data = []     
         for _date in date_list:
-            overall_status_obj = self.common.get_overall_status_by_model(_date, model)   
+            overall_status_obj = self.common.get_overall_status_by_model(_date, model)  
+
             rft_ok.append(overall_status_obj.filter(overall_status='RFT OK').count())
             not_ok.append(overall_status_obj.filter(overall_status='RFT NOT OK').count())
+
             if overall_status_obj.filter(overall_status='RFT OK').count() != 0:
                 percentage = float("{0:.2f}".format((overall_status_obj.filter(overall_status='RFT OK').count()/float(len(overall_status_obj)))*100))
             else:

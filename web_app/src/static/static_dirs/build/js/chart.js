@@ -1434,10 +1434,10 @@ echarts.init(document.getElementById("final_model_wise"), a);
                 },
                 legend: {
                     data: ["RFT OK", "RFT NOT OK"],
-                    y: 'bottom'
+                    x: 'right'
                 },
                 toolbox: {
-                    show: !1,
+                    show: !0,
                     orient : 'vertical',
                     x: 'right', 
                     y: 'center',
@@ -1771,10 +1771,10 @@ echarts.init(document.getElementById("overall_model_wise"), a);
                 },
                 legend: {
                     data: ["RFT OK", "RFT NOT OK"],
-                    y: 'bottom'
+                    x: 'right'
                 },
                 toolbox: {
-                    show: !1,
+                    show: !0,
                     orient : 'vertical',
                     x: 'right', 
                     y: 'center',
