@@ -6,7 +6,8 @@ from .models import (Parts,
                      Models,
                      ModelParts,
                      Market,
-                     ModelCategory
+                     ModelCategory,
+                     BaseModels
                      )
 from checkpoints.models import Checkpoints, PartDefects
 from organization.models import ModelStations
@@ -83,7 +84,7 @@ class ModelPartsAdmin(ImportExportModelAdmin):
     list_per_page = 10
     # class Meta:
     #      model = ModelParts
-
+admin.site.register(BaseModels)
 admin.site.register(Models, ModelAdmin)
 admin.site.register(Parts, PartAdmin)
 admin.site.register(ModelParts, ModelPartsAdmin)

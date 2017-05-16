@@ -25,59 +25,12 @@
                 <div class="clearfix"></div>
             </div>
             <div class="x_content">
-                <div class="col-md-2">
-                    <label for="id_rft_models">Plants:</label>
-                    <select id="id_rft_models" class="form-control" required>
-                        {% for plant in plants %}
-                            <option value="{{ plant.id }}">{{ plant }}</option>
-                        {% endfor %}
-                    </select>
+                <div id="rolldown_filter_form_div" class="panel-body">
+                    {% include "reports/rft_rolldown_filter_form.html" %}
                 </div>
-                <div class="col-md-2">
-                    <label for="id_rft_models">Shifts:</label>
-                    <select id="id_rft_models" class="form-control" required>
-                        {% for shift in shifts %}
-                            <option value="{{ shift.id }}">{{ shift }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label for="id_rft_models">Base Models:</label>
-                    <select id="id_rft_models" class="form-control" required>
-                        <option value=''>635</option>
-                        <option value=''>574</option>
-                        <option value=''>636</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label for="id_rft_models">Models:</label>
-                    <select id="id_rft_models" class="form-control" required>
-                        {% for model in models %}
-                            <option value="{{ model.id }}">{{ model }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label for="id_rft_stations">Stations:</label>
-                    <select id="id_rft_stations" class="form-control" required>
-                        {% for station in stations %}
-                            <option value="{{ station.id }}">{{ station }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label for="id_rft_stations">Defect Category:</label>
-                    <select id="id_rft_stations" class="form-control" required>
-                        <option value=''>Appearance</option>
-                        <option value=''>Critical</option>
-                        <option value=''>Functional</option>
-                    </select>
-                </div>
-                <br>
                 <div class="col-xs-12" style="margin-top: 30px;">
                     <div id="rolldown_date_wise" style="width:100%; height:300px;"></div>
-                    <div id="rolldown_model_wise" style="width:100%; height:300px;"></div>
-                    <div id="rolldown_station_wise" style="width:100%; height:300px;"></div>
+                    <div id="rolldown_filter_wise" style="width:100%; height:300px;"></div>
                 </div>
                 <div class="clearfix"></div>
             </div>
@@ -109,59 +62,12 @@
                 <div class="clearfix"></div>
             </div>
             <div class="x_content">
-                <div class="col-md-2">
-                    <label for="id_rft_models">Plants:</label>
-                    <select id="id_rft_models" class="form-control" required>
-                        {% for plant in plants %}
-                            <option value="{{ plant.id }}">{{ plant }}</option>
-                        {% endfor %}
-                    </select>
+                <div id="final_filter_form_div" class="panel-body">
+                    {% include "reports/rft_final_filter_form.html" %}
                 </div>
-                <div class="col-md-2">
-                    <label for="id_rft_models">Shifts:</label>
-                    <select id="id_rft_models" class="form-control" required>
-                        {% for shift in shifts %}
-                            <option value="{{ shift.id }}">{{ shift }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label for="id_rft_models">Base Models:</label>
-                    <select id="id_rft_models" class="form-control" required>
-                        <option value=''>635</option>
-                        <option value=''>574</option>
-                        <option value=''>636</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label for="id_final_models">Models:</label>
-                    <select id="id_final_models" class="form-control" required>
-                        {% for model in models %}
-                            <option value="{{ model.id }}">{{ model }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label for="id_rft_stations">Defect Category:</label>
-                    <select id="id_rft_stations" class="form-control" required>
-                        <option value=''>Appearance</option>
-                        <option value=''>Critical</option>
-                        <option value=''>Functional</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label for="id_rft_stations">Source Gate:</label>
-                    <select id="id_rft_stations" class="form-control" required>
-                        <option value=''>Parts</option>
-                        <option value=''>Process</option>
-                        <option value=''>PaintShop</option>
-                    </select>
-                </div>
-                <br>
                 <div class="col-xs-12" style="margin-top: 30px;">
                     <div id="final_date_wise" style="width:100%; height:300px;"></div>
-                    <div id="final_model_wise" style="width:100%; height:300px;"></div>
-
+                    <div id="final_filter_wise" style="width:100%; height:300px;"></div>
                 </div>
                 <div class="clearfix"></div>
             </div>
@@ -192,59 +98,12 @@
                 <div class="clearfix"></div>
             </div>
             <div class="x_content">
-                <div class="col-md-2">
-                    <label for="id_rft_models">Plants:</label>
-                    <select id="id_rft_models" class="form-control" required>
-                        {% for plant in plants %}
-                            <option value="{{ plant.id }}">{{ plant }}</option>
-                        {% endfor %}
-                    </select>
+                <div id="overall_filter_form_div" class="panel-body">
+                    {% include "reports/rft_overall_filter_form.html" %}
                 </div>
-                <div class="col-md-2">
-                    <label for="id_rft_models">Shifts:</label>
-                    <select id="id_rft_models" class="form-control" required>
-                        {% for shift in shifts %}
-                            <option value="{{ shift.id }}">{{ shift }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label for="id_rft_models">Base Models:</label>
-                    <select id="id_rft_models" class="form-control" required>
-                        <option value=''>635</option>
-                        <option value=''>574</option>
-                        <option value=''>636</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label for="id_overall_models">Models:</label>
-                    <select id="id_overall_models" class="form-control" required>
-                        {% for model in models %}
-                            <option value="{{ model.id }}">{{ model }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label for="id_rft_stations">Defect Category:</label>
-                    <select id="id_rft_stations" class="form-control" required>
-                        <option value=''>Appearance</option>
-                        <option value=''>Critical</option>
-                        <option value=''>Functional</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label for="id_rft_stations">Source Gate:</label>
-                    <select id="id_rft_stations" class="form-control" required>
-                        <option value=''>Parts</option>
-                        <option value=''>Process</option>
-                        <option value=''>PaintShop</option>
-                    </select>
-                </div>
-                <br>
                 <div class="col-xs-12" style="margin-top: 30px;">
                     <div id="overall_date_wise" style="width:100%; height:300px;"></div>
-                    <div id="overall_model_wise" style="width:100%; height:300px;"></div>
-
+                    <div id="overall_filter_wise" style="width:100%; height:300px;"></div>
                 </div>
                 <div class="clearfix"></div>
             </div>
@@ -253,3 +112,82 @@
     </div>
     <!-- /bar charts group -->
 </div>
+
+{% block script %}
+<script type="text/javascript">
+$(document).ready(function(){
+$('#rolldown_filter_wise').hide();
+$('#final_filter_wise').hide();
+$('#overall_filter_wise').hide();
+});
+/* Generating CSRF-TOKEN for AJAX POST*/
+$.ajaxSetup({
+     beforeSend: function(xhr, settings) {
+         function getCookie(name) {
+             var cookieValue = null;
+             if (document.cookie && document.cookie != '') {
+                 var cookies = document.cookie.split(';');
+                 for (var i = 0; i < cookies.length; i++) {
+                     var cookie = jQuery.trim(cookies[i]);
+                     // Does this cookie string begin with the name we want?
+                     if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                         cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                         break;
+                     }
+                 }
+             }
+             return cookieValue;
+         }
+         if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+             // Only send the token to relative URLs i.e. locally.
+             xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+         }
+     }
+});
+
+function rft_filter_refresh(){
+    $('#id_rft_rolldown_markets').val("");
+    $('#id_rft_rolldown_shifts').val("");
+    $('#id_rft_rolldown_base_models').val("");
+    $('#id_rft_rolldown_models').val("");
+    $('#id_rft_rolldown_stations').val("");
+    $('#id_rft_final_markets').val("");
+    $('#id_rft_final_shifts').val("");
+    $('#id_rft_final_base_models').val("");
+    $('#id_rft_final_models').val("");
+    $('#id_rft_overall_markets').val("");
+    $('#id_rft_overall_shifts').val("");
+    $('#id_rft_overall_base_models').val("");
+    $('#id_rft_overall_models').val("");
+}
+
+function rft_div_refresh() {
+    $('#rolldown_filter_wise').html("");
+    $('#final_filter_wise').html("");
+    $('#overall_filter_wise').html("");
+    $('#rolldown_filter_wise').hide();
+    $('#final_filter_wise').hide();
+    $('#overall_filter_wise').hide();             
+    $('#rolldown_date_wise').show();
+    $('#final_date_wise').show(); 
+    $('#overall_date_wise').show(); 
+}
+
+$("#rft_search").click(function(e){
+      e.preventDefault();
+
+      var frm = $(this).closest('form');
+
+      $.ajax({
+        "type": frm.attr('method'),
+        "url": frm.attr('action'),
+        "data" : frm.serialize(),
+        success: function(data) {
+            rft_div_refresh();
+            rft_filter_refresh();                     
+            rft_date_wise_charts(data)
+        },
+    });
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,91 @@
+{% load staticfiles %}
+
+<form id='rft_final_filter_form' method="POST" action='/rft/filter' style="font-size: 12px;" name="rft_final_filter">
+    {% csrf_token %}
+    
+    {% if final_filter_form.rft_final_plants %}
+        <div class="col-md-2 col-lg-2 col-sm-2 col-xs-3 form-group">
+        <label for="id_rft_plants">Plants:</label>
+        {{final_filter_form.rft_final_plants}}
+        </div>
+    {% endif %}
+    {% if final_filter_form.rft_final_markets %}
+        <div class="col-md-2 col-lg-2 col-sm-2 col-xs-3 form-group">
+        <label for="id_rft_rolldown_plants">Markets:</label>
+        {{final_filter_form.rft_final_markets}}
+        </div>
+    {% endif %}
+    {% if final_filter_form.rft_final_shifts %}
+        <div class="col-md-2 col-lg-2 col-sm-2 col-xs-3 form-group">
+        <label for="id_rft_rolldown_shifts">Shifts:</label>
+        {{final_filter_form.rft_final_shifts}}
+        </div>
+    {% endif %}
+    {% if final_filter_form.rft_final_base_models %}
+        <div class="col-md-2 col-lg-2 col-sm-2 col-xs-3 form-group">
+        <label for="id_rft_rolldown_models">Base Models:</label>
+        {{final_filter_form.rft_final_base_models}}
+        </div>
+    {% endif %}
+    {% if final_filter_form.rft_final_models %}
+        <div class="col-md-2 col-lg-2 col-sm-2 col-xs-3 form-group">
+        <label for="id_rft_rolldown_models">Models:</label>
+        {{final_filter_form.rft_final_models}}
+        </div>
+    {% endif %}
+    {% if final_filter_form.rft_final_stations %}
+        <div class="col-md-2 col-lg-2 col-sm-2 col-xs-3 form-group">
+        <label for="id_rft_rolldown_stations">Stations:</label>
+        {{final_filter_form.rft_final_stations}}
+        </div>
+    {% endif %}
+</form>
+{% block script %}
+<script type="text/javascript">
+$("#id_rft_final_plants, #id_rft_final_markets, #id_rft_final_base_models, #id_rft_final_models, #id_rft_final_stations").change(function (e) {
+      e.preventDefault();
+
+      var frm = $(this).closest('form');
+      var from_date = $("#rft_filter input[name=from_date]").val();
+      var to_date = $("#rft_filter input[name=to_date]").val();   
+
+      $.ajax({
+        url: frm.attr('action'),
+        method: frm.attr('method'),
+        data : frm.serialize(),
+        success: function (data) {
+            $('#final_filter_form_div').html(data);
+            var frm = $('#rft_final_filter_form')
+            $.ajax({
+              url: '{% url 'rft_final_view' %}',
+              method: 'POST',
+              data: {
+                'from_date': from_date,
+                'to_date': to_date,
+                'form': getFormData(frm),
+              },
+              dataType: 'json',
+              success: function (data) {
+                  $('#final_date_wise').html("");
+                  $('#final_date_wise').hide();
+                  $('#final_filter_wise').html("");
+                  $('#final_filter_wise').show();
+                  final_filter_wise_charts(data)
+              }
+            });   
+        }
+      });
+    });
+
+function getFormData($form){
+    var unindexed_array = $form.serializeArray();
+    var indexed_array = {};
+
+    $.map(unindexed_array, function(n, i){
+        indexed_array[n['name']] = n['value'];
+    });
+
+    return indexed_array;
+}
+</script>
+{% endblock %}

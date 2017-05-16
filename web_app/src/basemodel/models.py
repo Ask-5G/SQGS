@@ -59,10 +59,22 @@ class ModelCategory(models.Model):
     def __str__(self):
         return self.description
 
-signals.post_save.connect(save_updated_table, sender=ModelCategory)    
+signals.post_save.connect(save_updated_table, sender=ModelCategory)
+
+class BaseModels(models.Model):
+    description = models.CharField(max_length=45, blank=True, null=True)
+
+    class Meta:
+        verbose_name = "BaseModel"
+        db_table = 'BaseModels'
+
+    def __str__(self):
+        return self.description
+
+signals.post_save.connect(save_updated_table, sender=BaseModels)
 
 class Models(models.Model):
-    base_sales_code = models.CharField(max_length=45, blank=True, null=True)
+    base_models = models.ForeignKey(BaseModels, on_delete=models.CASCADE, null=True)
     sales_code = models.CharField(max_length=300)
     description = models.CharField(max_length=300)
     market = models.ForeignKey(Market, on_delete=models.CASCADE, null=True)

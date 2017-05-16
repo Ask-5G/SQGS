@@ -36,6 +36,7 @@ ordered_model_items = {
         "DefectClosure":26,
         "Market":27,
         "ModelCategory":28,
+        "BaseModels": 29,
 }
 
 MODEL_CHOICES = (('Parts', 'Parts'),

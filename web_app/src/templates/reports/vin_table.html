@@ -61,7 +61,7 @@
                 </div>
                 </div>
       </div>
-
+{% block script %}
   <script type="text/javascript">
 
     $(document).ready( function () {
@@ -108,8 +108,8 @@
     });
 
   </script>
-
-
+{% endblock %}
+{% block styles %}
   <style type="text/css">
     .datatable td,th {
   overflow: hidden; /* this is what fixes the expansion */
@@ -117,3 +117,4 @@
   white-space: nowrap;
 }
   </style>
+{% endblock %}

@@ -110,6 +110,7 @@ signals.post_save.connect(save_updated_table, sender=Roles)
 
 class Users(models.Model):
    
+    plants = models.ForeignKey(Plants, on_delete=models.CASCADE)
     user_code = models.CharField(max_length=50, null=True, unique=True)
     name = models.CharField(max_length=100)
     password = models.CharField(max_length=100, default = "p@ssw0rd")

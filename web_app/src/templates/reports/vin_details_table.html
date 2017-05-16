@@ -51,19 +51,21 @@
                 </div>
                 </div>
       </div>
-  <script type="text/javascript">
 
-    $(document).ready( function () {
-      $('#station_details_table_id').DataTable({"scrollX": true});
-    } );
+{% block script %}
+<script type="text/javascript">
 
-   
-  </script>
-
-  <style type="text/css">
+  $(document).ready( function () {
+    $('#station_details_table_id').DataTable({"scrollX": true});
+  } );
+</script>
+{% endblock %}
+{% block styles %}
+<style type="text/css">
     .datatable td,th {
   overflow: hidden; /* this is what fixes the expansion */
   text-overflow: ellipsis; /* not supported in all browsers, but I accepted the tradeoff */
   white-space: nowrap;
 }
-  </style>
+</style>
+{% endblock %}
