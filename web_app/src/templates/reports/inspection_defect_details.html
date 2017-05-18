@@ -1,3 +1,5 @@
+{% load mathfilters %}
+
 <div id="inspection_defect_details_table_div">
     <div class="clearfix"></div>
       <!-- line graph -->
@@ -37,6 +39,8 @@
                 <th>Repair Description</th>
                 <th>Defect Closed Time</th>
                 <th>Rectifier</th>
+                <th>Status</th>
+                <th align="center">TDEV</th>
             </tr>
         </thead>
         <tbody class="datatable">
@@ -63,9 +67,13 @@
                 <td>{{data.defect_closure.repairs.description}}</td>
                 <td>{{data.defect_closure.created_time}}</td>
                 <td>{{data.defect_closure.user.name}}</td>
+                <td>Closed</td>
+                <td>{{data.defect_closure.created_time|sub:data.inspection_defect.created_time}}</td>
               {% else %}
                 <td align="center">-</td>
                 <td align="center">-</td>
+                <td align="center">-</td>
+                <td>Opened</td>
                 <td align="center">-</td>
               {% endif %}
             </tr>

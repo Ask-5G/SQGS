@@ -4,7 +4,8 @@ from django.views import View
 from django.views.generic import TemplateView
 from basemodel.models import Models
 from organization.models import * 
-from inspection.models import VinStatus, VinDetails, Verification, DefectsPerUnit, FinalRFT, InspectionDefects
+from inspection.models import VinStatus, VinDetails, Verification, DefectsPerUnit, FinalRFT, InspectionDefects, CheckpointDefects, DefectClosure
+from checkpoints.models import * 
 from datetime import date, datetime, timedelta as td
 from django.core.urlresolvers import reverse
 from django.http import JsonResponse
@@ -12,11 +13,14 @@ from .forms import RftRolldownFilterForm, RftFinalFilterForm, RftOverallFilterFo
 from django.views.generic.edit import FormView
 from django.template.response import TemplateResponse
 from dateutil.parser import parse
+from reports.templatetags import custom_tags
+from collections import defaultdict
+from collections import Counter
 
 def get_user_dict(request):
     return {
         "user": 'Guest User',
-        "plant": 1
+        "plant": ''
         }
 
 class Common(object):
@@ -38,11 +42,7 @@ class Common(object):
         else:
             return VinDetails.objects.all()
 
-    def get_dpu_by_date(self, _date):
-        _date = _date.split('-')
-        _date.reverse()
-        dpu_obj = DefectsPerUnit.objects.filter(date__contains='-'.join(_date))
-        return dpu_obj
+
 
 class RftView(TemplateView):
     common = Common()
@@ -71,15 +71,15 @@ class RftView(TemplateView):
 class RftFilterView(View):
 
     def post(self, request):
-        if 'rft_rolldown_markets' in request.POST:
+        if 'rft_rolldown_plants' in request.POST:
             rolldown_form = RftRolldownFilterForm(user=get_user_dict(request), initial=request.POST)
             rolldown_filter_form = self.render_to_rft_rolldown_template(request, rolldown_form)
             return JsonResponse(rolldown_filter_form, safe=False)
-        if 'rft_final_markets' in request.POST:
+        if 'rft_final_plants' in request.POST:
             final_form = RftFinalFilterForm(user=get_user_dict(request), initial=request.POST)
             final_filter_form = self.render_to_rft_final_template(request, final_form)
             return JsonResponse(final_filter_form, safe=False)
-        if 'rft_overall_markets' in request.POST:
+        if 'rft_overall_plants' in request.POST:
             overall_form = RftOverallFilterForm(user=get_user_dict(request), initial=request.POST)
             overall_filter_form = self.render_to_rft_overall_template(request, overall_form)
             return JsonResponse(overall_filter_form, safe=False)
@@ -221,8 +221,8 @@ class RftSearchView(View):
         user=get_user_dict(request)
         from_date = self.common.parse_date(request.POST.get('from_date'))
         to_date = self.common.parse_date(request.POST.get('to_date')) 
+        
         date_list = self.common.get_date_list(from_date, to_date)
-        print date_list
         vin_obj = self.common.get_vin_details(user)
         date_from = parse(request.POST.get('from_date')).strftime('%Y-%m-%d %H:%M:%S')
         date_to = parse(request.POST.get('to_date')).strftime('%Y-%m-%d %H:%M:%S')
@@ -252,27 +252,28 @@ class RftRolldownView(View):
 
     def rft_rolldown_chart_data(self, user, vin, form, date_list):
         for _date in date_list:
-            if user['plant'] == '':
-                if form['form[rft_rolldown_plants]'] != [u'']:
+            # if user['plant'] == '':
+            if form['form[rft_rolldown_plants]'] != [u'']:
                     vin = vin.filter(stations__cells__plants=int(form['form[rft_rolldown_plants]'][0]))
-            else:
-                if form['form[rft_rolldown_markets]'] != [u'']:
-                    vin = vin.filter(model__market=int(form['form[rft_rolldown_markets]'][0]))
-                # if form['form[rft_rolldown_shifts]'] != [u'']:
-                #     vin = vin.filter(timestamp__contains=parse(_date).strftime('%Y-%d-%m')).filter(model__markets=form['form[rft_rolldown_markets]'][0])
-                if form['form[rft_rolldown_base_models]'] != [u'']:
-                    vin = vin.filter(model__base_models=int(form['form[rft_rolldown_base_models]'][0]))
-                if form['form[rft_rolldown_models]'] != [u'']:
-                    vin = vin.filter(model=int(form['form[rft_rolldown_models]'][0]))
-                if form['form[rft_rolldown_stations]'] != [u'']:
-                    vin = vin.filter(stations=int(form['form[rft_rolldown_stations]'][0]))
+            # else:
+            if 'form[rft_rolldown_markets]' in form and form['form[rft_rolldown_markets]'] != [u'']:
+                vin = vin.filter(model__market=int(form['form[rft_rolldown_markets]'][0]))
+            # if form['form[rft_rolldown_shifts]'] != [u'']:
+            #     vin = vin.filter(timestamp__contains=parse(_date).strftime('%Y-%d-%m')).filter(model__markets=form['form[rft_rolldown_markets]'][0])
+            if 'form[rft_rolldown_base_models]' in form and form['form[rft_rolldown_base_models]'] != [u'']:
+                vin = vin.filter(model__base_models=int(form['form[rft_rolldown_base_models]'][0]))
+            if 'form[rft_rolldown_models]' in form and form['form[rft_rolldown_models]'] != [u'']:
+                vin = vin.filter(model=int(form['form[rft_rolldown_models]'][0]))
+            if 'form[rft_rolldown_stations]' in form and form['form[rft_rolldown_stations]'] != [u'']:
+                vin = vin.filter(stations=int(form['form[rft_rolldown_stations]'][0]))
               
             current_vin = vin.filter(timestamp__contains=parse(_date).strftime('%Y-%d-%m'))
             
-            if form['form[rft_rolldown_stations]'] != [u'']:
-                vin_obj = Verification.objects.filter(vin__in=set(current_vin))
-            else:
-                vin_obj = VinStatus.objects.filter(vin__in=set(current_vin))
+            # if 'rft_rolldown_stations' in request.POST and form['form[rft_rolldown_stations]'] != [u'']:
+            #     vin_obj = Verification.objects.filter(vin__in=set(current_vin))
+            # else:
+            #     vin_obj = VinStatus.objects.filter(vin__in=set(current_vin))
+            vin_obj = VinStatus.objects.filter(vin__in=set(current_vin))
             self.rft_ok.append(vin_obj.filter(status='RFT OK').count())
             self.not_ok.append(vin_obj.filter(status='RFT NOT OK').count())
             self.no_of_tractors.append(vin_obj.count())
@@ -320,7 +321,6 @@ class RftRolldownView(View):
         date_from = parse(request.POST.get('from_date')).strftime('%Y-%m-%d %H:%M:%S')
         date_to = parse(request.POST.get('to_date')).strftime('%Y-%m-%d %H:%M:%S')
         vin = vin_obj.extra(where=["timestamp >= '%s' and timestamp <= '%s'"%(date_from,date_to)])
-
         # form = [self.removekey(form, key) for key in ['from_date', 'to_date']]
         data = self.rft_rolldown_chart_data(user, vin, form, date_list)
 
@@ -337,21 +337,21 @@ class RftFinalView(View):
 
     def rft_final_chart_data(self, user, vin, form, date_list):
         for _date in date_list:
-            if user['plant'] == '':
-                if form['form[rft_final_plants]'] != [u'']:
-                    vin = vin.filter(stations__cells__plants=int(form['form[rft_final_plants]'][0]))
-            else:
-                if form['form[rft_final_markets]'] != [u'']:
-                    vin = vin.filter(model__market=int(form['form[rft_final_markets]'][0]))
-                # if form['form[rft_final_shifts]'] != [u'']:
-                #     vin = vin.filter(timestamp__contains=parse(_date).strftime('%Y-%d-%m')).filter(model__markets=form['form[rft_final_markets]'][0])
-                if form['form[rft_final_base_models]'] != [u'']:
-                    vin = vin.filter(model__base_models=int(form['form[rft_final_base_models]'][0]))
-                if form['form[rft_final_models]'] != [u'']:
-                    vin = vin.filter(model=int(form['form[rft_final_models]'][0]))
-                # if form['form[rft_final_stations]'] != [u'']:
-                #     vin = vin.filter(stations=int(form['form[rft_final_stations]'][0]))
-              
+            # if user['plant'] == '':
+            if form['form[rft_final_plants]'] != [u'']:
+                vin = vin.filter(stations__cells__plants=int(form['form[rft_final_plants]'][0]))
+            # else:
+            if 'form[rft_final_markets]' in form and form['form[rft_final_markets]'] != [u'']:
+                vin = vin.filter(model__market=int(form['form[rft_final_markets]'][0]))
+            # if form['form[rft_final_shifts]'] != [u'']:
+            #     vin = vin.filter(timestamp__contains=parse(_date).strftime('%Y-%d-%m')).filter(model__markets=form['form[rft_final_markets]'][0])
+            if 'form[rft_final_base_models]' in form and form['form[rft_final_base_models]'] != [u'']:
+                vin = vin.filter(model__base_models=int(form['form[rft_final_base_models]'][0]))
+            if 'form[rft_final_models]' in form and form['form[rft_final_models]'] != [u'']:
+                vin = vin.filter(model=int(form['form[rft_final_models]'][0]))
+            # if form['form[rft_final_stations]'] != [u'']:
+            #     vin = vin.filter(stations=int(form['form[rft_final_stations]'][0]))
+          
             current_vin = vin.filter(timestamp__contains=parse(_date).strftime('%Y-%d-%m'))
             
             # if form['form[rft_final_stations]'] != [u'']:
@@ -424,20 +424,20 @@ class RftOverallView(View):
 
     def rft_overall_chart_data(self, user, vin, form, date_list):
         for _date in date_list:
-            if user['plant'] == '':
-                if form['form[rft_overall_plants]'] != [u'']:
-                    vin = vin.filter(stations__cells__plants=int(form['form[rft_overall_plants]'][0]))
-            else:
-                if form['form[rft_overall_markets]'] != [u'']:
-                    vin = vin.filter(model__market=int(form['form[rft_overall_markets]'][0]))
-                # if form['form[rft_final_shifts]'] != [u'']:
-                #     vin = vin.filter(timestamp__contains=parse(_date).strftime('%Y-%d-%m')).filter(model__markets=form['form[rft_final_markets]'][0])
-                if form['form[rft_overall_base_models]'] != [u'']:
-                    vin = vin.filter(model__base_models=int(form['form[rft_overall_base_models]'][0]))
-                if form['form[rft_overall_models]'] != [u'']:
-                    vin = vin.filter(model=int(form['form[rft_overall_models]'][0]))
-                # if form['form[rft_final_stations]'] != [u'']:
-                #     vin = vin.filter(stations=int(form['form[rft_final_stations]'][0]))
+            # if user['plant'] == '':
+            if form['form[rft_overall_plants]'] != [u'']:
+                vin = vin.filter(stations__cells__plants=int(form['form[rft_overall_plants]'][0]))
+            # else:
+            if 'form[rft_overall_markets]' in form and form['form[rft_overall_markets]'] != [u'']:
+                vin = vin.filter(model__market=int(form['form[rft_overall_markets]'][0]))
+            # if form['form[rft_final_shifts]'] != [u'']:
+            #     vin = vin.filter(timestamp__contains=parse(_date).strftime('%Y-%d-%m')).filter(model__markets=form['form[rft_final_markets]'][0])
+            if 'form[rft_overall_base_models]' in form and form['form[rft_overall_base_models]'] != [u'']:
+                vin = vin.filter(model__base_models=int(form['form[rft_overall_base_models]'][0]))
+            if 'form[rft_overall_models]' in form and form['form[rft_overall_models]'] != [u'']:
+                vin = vin.filter(model=int(form['form[rft_overall_models]'][0]))
+            # if form['form[rft_final_stations]'] != [u'']:
+            #     vin = vin.filter(stations=int(form['form[rft_final_stations]'][0]))
               
             current_vin = vin.filter(timestamp__contains=parse(_date).strftime('%Y-%d-%m'))
             
@@ -512,38 +512,245 @@ class DpuView(FormView):
 
 class DpuSearchView(View):
     common = Common()
- 
-    def day_wise(self, date_list):
+
+    def get_rolldown_dpu_by_date(self, date_list, vin):
         dpu_list = [] 
-        mark_data = []      
+        mark_data = [] 
+        defects_data = []
+        sourcegates_list = ['DPU']
         for _date in date_list:
-            dpu_obj = self.common.get_dpu_by_date(_date)
+            dpu_obj =  vin.filter(timestamp__contains=parse(_date).strftime('%Y-%d-%m')).exclude(stations__description='Final Inspection')
+            check_point_defects = []
+            part_defect = []
             if len(dpu_obj) != 0:
-                dpu = dpu_obj[0].dpu
-                mark_dict={
-                    'name': "Average",
-                    'value': dpu,
-                    'xAxis': _date,
-                    'yAxis': dpu
-                }
-                mark_data.append(mark_dict)
+                    defect_rolldown = 0
+                    for dpu in dpu_obj:
+                        inspection_defects = InspectionDefects.objects.filter(vin=dpu).exclude(vin__stations__description='Final Inspection')
+                        defect_rolldown  +=  inspection_defects.count()
+                        if len(inspection_defects) !=0:
+                            for inspection_defect in inspection_defects:
+                                if inspection_defect.checkpoints != None:
+                                    try:
+                                        check_point_defect = CheckpointDefects.objects.get(
+                                            checkpoints=inspection_defect.checkpoints)
+                                        sourcegate =SourceGates.objects.get(id=check_point_defect.defects.sourcegates.id).description
+                                        check_point_defects.append(sourcegate)
+                                    except:
+                                        check_point_defect = ""
+                                else:
+                                    try:
+                                        part_defect_obj = PartDefects.objects.get(id=inspection_defect.partdefects.id)
+                                        sourcegate =SourceGates.objects.get(id=part_defect_obj.defects.sourcegates.id).description
+                                        part_defect.append(sourcegate)
+                                    except:
+                                        part_defect_obj = ""
+
+                    tractor_count = dpu_obj.count()
+                    dpu = float("{0:.2f}".format(defect_rolldown/float(tractor_count)))
+                    mark_dict={
+                        'name': "Average",
+                        'value': dpu,
+                        'xAxis': _date,
+                        'yAxis': dpu
+                        }
+                    mark_data.append(mark_dict)
             else:
                 dpu = 0
             dpu_list.append(dpu)
-        print mark_data
+            
+            sourcegates = check_point_defects + part_defect
+            d = {x:sourcegates.count(x) for x in sourcegates}
+            # import pdb;pdb.set_trace()
+            sourcegates_list.extend(sourcegates)
+            defects_data.append(d)
+
+        # import pdb;pdb.set_trace()
+        source_list=list(set(sourcegates_list))
+
+        chart_defects = []
+        for source in source_list:
+            defects_list =[]
+            for defects in defects_data:
+                if source in defects:
+                    defects_list.append(defects[source])
+                else:
+                    defects_list.append(0)
+            chart_defects.append(defects_list) 
+        print chart_defects   
         data = {
         'date_list': date_list,
         'dpu': dpu_list,
-        'mark_data': mark_data
+        'mark_data': mark_data,
+        'source_list': source_list,
+        'chart_defects': chart_defects
         }
         return data
 
-    def post(self, request, *args, **kwargs):
+    def get_final_dpu_by_date(self, date_list, vin):
+        dpu_list = [] 
+        mark_data = []  
+        defects_data = []
+        sourcegates_list = ['DPU']
+        for _date in date_list:
+            dpu_obj =  vin.filter(stations__description='Final Inspection').filter(timestamp__contains=parse(_date).strftime('%Y-%d-%m'))
+            check_point_defects = []
+            part_defect = []
+            if len(dpu_obj) != 0:
+                    defect_final = 0
+                    for dpu in dpu_obj:
+                        inspection_defects =  InspectionDefects.objects.filter(vin=dpu).filter(vin__stations__description='Final Inspection')
+                        defect_final += inspection_defects.count()
+                        if len(inspection_defects) !=0:
+                            for inspection_defect in inspection_defects:
+                                if inspection_defect.checkpoints != None:
+                                    try:
+                                        check_point_defect = CheckpointDefects.objects.get(
+                                            checkpoints=inspection_defect.checkpoints)
+                                        sourcegate =SourceGates.objects.get(id=check_point_defect.defects.sourcegates.id).description
+                                        #print "sourcegate", sourcegate
+                                        check_point_defects.append(sourcegate)
+                                    except:
+                                        check_point_defect = ""
+                                else:
+                                    try:
+                                        part_defect_obj = PartDefects.objects.get(id=inspection_defect.partdefects.id)
+                                        sourcegate =SourceGates.objects.get(id=part_defect_obj.defects.sourcegates.id).description
+                                        part_defect.append(sourcegate)
+                                        #print "defect", sourcegate
+                                    except:
+                                        part_defect_obj = ""
+                    tractor_count = dpu_obj.count()
+                    dpu = float("{0:.2f}".format(defect_final/float(tractor_count)))
+                    mark_dict={
+                        'name': "Average",
+                        'value': dpu,
+                        'xAxis': _date,
+                        'yAxis': dpu
+                        }
+                    #print mark_dict
+                    mark_data.append(mark_dict)
+            else:
+                dpu = 0
+            dpu_list.append(dpu)
+            sourcegates = check_point_defects + part_defect
+            d = {x:sourcegates.count(x) for x in sourcegates}
+            # import pdb;pdb.set_trace()
+            sourcegates_list.extend(sourcegates)
+            defects_data.append(d)
 
+        # import pdb;pdb.set_trace()
+        source_list=list(set(sourcegates_list))
+
+        chart_defects = []
+        for source in source_list:
+            defects_list =[]
+            for defects in defects_data:
+                if source in defects:
+                    defects_list.append(defects[source])
+                else:
+                    defects_list.append(0)
+            chart_defects.append(defects_list) 
+        print chart_defects 
+        data = {
+        'date_list': date_list,
+        'dpu': dpu_list,
+        'mark_data': mark_data,
+        'source_list': source_list,
+        'chart_defects': chart_defects
+        }
+        return data
+
+    def get_overall_dpu_by_date(self, date_list, vin):
+        dpu_list = [] 
+        mark_data = []   
+        defects_data = []  
+        sourcegates_list = ['DPU'] 
+        for _date in date_list:
+            dpu_obj =  vin.filter(timestamp__contains=parse(_date).strftime('%Y-%d-%m'))
+            check_point_defects = []
+            part_defect = []
+            if len(dpu_obj) != 0:
+                    defect_overall = 0
+                    for dpu in dpu_obj:
+                        inspection_defects =  InspectionDefects.objects.filter(vin=dpu)
+                        defect_overall  += inspection_defects.count()
+                        if len(inspection_defects) !=0:
+                            for inspection_defect in inspection_defects:
+                                if inspection_defect.checkpoints != None:
+                                    try:
+                                        check_point_defect = CheckpointDefects.objects.get(
+                                            checkpoints=inspection_defect.checkpoints)
+                                        sourcegate =SourceGates.objects.get(id=check_point_defect.defects.sourcegates.id).description
+                                        #print "sourcegate", sourcegate
+                                        check_point_defects.append(sourcegate)
+                                    except:
+                                        check_point_defect = ""
+                                else:
+                                    try:
+                                        part_defect_obj = PartDefects.objects.get(id=inspection_defect.partdefects.id)
+                                        sourcegate =SourceGates.objects.get(id=part_defect_obj.defects.sourcegates.id).description
+                                        part_defect.append(sourcegate)
+                                        #print "defect", sourcegate
+                                    except:
+                                        part_defect_obj = ""
+                    tractor_count = dpu_obj.count()
+                    dpu = float("{0:.2f}".format(defect_overall/float(tractor_count)))
+                    mark_dict={
+                        'name': "Average",
+                        'value': dpu,
+                        'xAxis': _date,
+                        'yAxis': dpu
+                        }
+                    mark_data.append(mark_dict)
+            else:
+                dpu = 0
+            dpu_list.append(dpu)
+            sourcegates = check_point_defects + part_defect
+            d = {x:sourcegates.count(x) for x in sourcegates}
+            # import pdb;pdb.set_trace()
+            sourcegates_list.extend(sourcegates)
+            defects_data.append(d)
+
+        # import pdb;pdb.set_trace()
+        source_list=list(set(sourcegates_list))
+
+        chart_defects = []
+        for source in source_list:
+            defects_list =[]
+            for defects in defects_data:
+                if source in defects:
+                    defects_list.append(defects[source])
+                else:
+                    defects_list.append(0)
+            chart_defects.append(defects_list) 
+        print chart_defects 
+        data = {
+        'date_list': date_list,
+        'dpu': dpu_list,
+        'mark_data': mark_data,
+        'source_list': source_list,
+        'chart_defects': chart_defects
+        }
+        return data
+
+
+    def post(self, request, *args, **kwargs):
+        user=get_user_dict(request)
         from_date = self.common.parse_date(request.POST.get('from_date'))
         to_date = self.common.parse_date(request.POST.get('to_date')) 
+        vin_obj = self.common.get_vin_details(user) 
+        date_from = parse(request.POST.get('from_date')).strftime('%Y-%d-%m %H:%M:%S')
+        date_to = parse(request.POST.get('to_date')).strftime('%Y-%d-%m %H:%M:%S')
+        vin = vin_obj.extra(where=["timestamp >= '%s' and timestamp <= '%s'"%(date_from,date_to)])
         date_list = self.common.get_date_list(from_date, to_date)
-        data = self.day_wise(date_list)
+        rolldown = self.get_rolldown_dpu_by_date(date_list, vin)
+        final = self.get_final_dpu_by_date(date_list, vin)
+        overall = self.get_overall_dpu_by_date(date_list, vin)
+        data = {
+            'rolldown': rolldown,
+            'final': final,
+            'overall': overall
+        }
         return JsonResponse(data, safe=False)
 
 
@@ -626,12 +833,14 @@ class VinSummaryView(View):
         vin_status=VinStatus.objects.filter(last_modified_date__contains=parse(request.POST.get('date')).strftime('%Y-%m-%d'))
         vin_status_and_final_rft = []
         for vin_status_obj in vin_status:
+            model = Models.objects.get(id__in=VinDetails.objects.filter(vin=vin_status_obj.vin).values_list('model', flat=True))
             try:
                 final_rft = FinalRFT.objects.get(vin=vin_status_obj.vin)
             except:
                 final_rft = ""
 
             vin_status_and_final_rft.append({
+                    "model": model,
                     "vin_status":vin_status_obj,
                     "final_rft":final_rft
             })
@@ -653,6 +862,7 @@ class VinDetailsView(View):
     def post(self, request, *args, **kwargs):
         vin_number = request.POST.get("vin_number")
         verification = Verification.objects.filter(vin__vin=vin_number)
+
         response = self.render_to_template(verification, request, vin_number)
         inspection_defects = InspectionDefects.objects.filter(vin__vin = vin_number)
         print inspection_defects

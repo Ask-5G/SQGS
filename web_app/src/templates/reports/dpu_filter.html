@@ -91,7 +91,6 @@ $.ajaxSetup({
 });
 
 $("#dpu_search").click(function(e){
-      alert()
       e.preventDefault();
 
       var frm = $(this).closest('form');
@@ -101,7 +100,13 @@ $("#dpu_search").click(function(e){
         "url": frm.attr('action'),
         "data" : frm.serialize(),
         success: function(data) {
-            $("#dpu_date_wise").html("");
+          // alert(data)
+            $("#rolldown_dpu_date_wise").html("");
+            $("#final_dpu_date_wise").html("");
+            $("#overall_dpu_date_wise").html("");
+            $('#rolldown_dpu_date_wise').show();
+            $('#final_dpu_date_wise').show();
+            $('#overall_dpu_date_wise').show();
             dpu_date_wise_charts(data)
         },
     });

@@ -1,3 +1,6 @@
+{% load mathfilters %}
+{% load custom_tags %}
+
 <div id="vin_details_table_div">
     <div class="clearfix"></div>
       <!-- line graph -->
@@ -29,10 +32,11 @@
         <thead>
             <tr>
                 <th>Station</th>
-                <th>Opened Defects</th>
-                <th>Closed Defects</th>
-                <th>Logged in Time</th>
-                <th>Logged In User</th>
+                <th align="center">Opened Defects</th>
+                <th align="center">Closed Defects</th>
+                <th align="center">Inspected Time</th>
+                <th align="center">Inspector</th>
+                <!-- <th align="center">TDEV</th> -->
             </tr>
         </thead>
         <tbody class="datatable">
@@ -41,8 +45,13 @@
               <td>{{data.stations.description}}</td>
               <td align="center">{{data.defects_count}}</td>
               <td align="center">{{data.closure_count}}</td>
-              <td >{{data.timestamp}}</td>
+              <td>{{data.last_modified_date}}</td>
               <td>{{data.vin.users.name}}</td>
+              <!-- {% if forloop.first %}
+                <td>{{data.last_modified_date|sub:data.last_modified_date}}</td>
+              {% else %}
+                <td>{{data.before.last_modified_date}}</td>
+              {% endif %} -->
             </tr>
             {% endfor %}
         </tbody>

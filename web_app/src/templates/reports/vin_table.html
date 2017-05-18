@@ -30,6 +30,7 @@
             <tr>
                 <th>Date</th>
                 <th>Vin No</th>
+                <th>Model</th>
                 <th>Defects Opened</th>
                 <th>Defects Closed</th>
                 <th>Roll Down RFT</th>
@@ -43,6 +44,7 @@
               <td>{{data.vin_status.last_modified_date}}</td>
               <td><a  onclick = "vin_details('{{data.vin_status.vin}}')" id="vin_details_href">{{data.vin_status.vin}}</a>
               </td>
+              <td>{{data.model}}</td>
               <td align="center">{{data.vin_status.tot_defects}}</td>
               <td align="center">{{data.vin_status.tot_closure}}</td>
               <td>{{data.vin_status.status}}</td>

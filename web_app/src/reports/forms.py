@@ -262,17 +262,32 @@ class RftRolldownFilterForm(forms.Form):
 		try:
 			if initial != {}:
 				self.fields['rft_rolldown_plants'].queryset = get_plant_list()
-				self.fields['rft_rolldown_plants'].initial = get_plant_list(initial['rft_rolldown_plants'])
-				self.fields['rft_rolldown_markets'].queryset = get_market_list(initial['rft_rolldown_plants'])
-				self.fields['rft_rolldown_markets'].disabled = True
-				self.fields['rft_rolldown_shifts'].queryset = get_shift_list(initial['rft_rolldown_plants'])
-				self.fields['rft_rolldown_shifts'].disabled = True
-				self.fields['rft_rolldown_base_models'].queryset = get_base_list(initial['rft_rolldown_plants'])
-				self.fields['rft_rolldown_base_models'].disabled = True
-				self.fields['rft_rolldown_models'].queryset = get_model_list(initial['rft_rolldown_plants'])
-				self.fields['rft_rolldown_models'].disabled = True
-				self.fields['rft_rolldown_stations'].queryset = get_station_list(initial['rft_rolldown_plants'])
-				self.fields['rft_rolldown_stations'].disabled = True
+				self.fields['rft_rolldown_plants'].initial = initial['rft_rolldown_plants']
+
+				if initial['rft_rolldown_plants'] == '':
+					self.fields['rft_rolldown_markets'].disabled = True
+					self.fields['rft_rolldown_shifts'].disabled = True
+					self.fields['rft_rolldown_base_models'].disabled = True
+					self.fields['rft_rolldown_models'].disabled = True
+					self.fields['rft_rolldown_stations'].disabled = True
+				else:
+					if len(initial) > 2:
+						self.fields['rft_rolldown_markets'].queryset = get_market_list(initial['rft_rolldown_plants'], initial['rft_rolldown_base_models'], initial['rft_rolldown_models'], initial['rft_rolldown_stations'])
+						self.fields['rft_rolldown_shifts'].queryset = get_shift_list(initial['rft_rolldown_plants'])
+						self.fields['rft_rolldown_base_models'].queryset = get_base_list(initial['rft_rolldown_plants'], initial['rft_rolldown_markets'], initial['rft_rolldown_models'], initial['rft_rolldown_stations'])
+						self.fields['rft_rolldown_models'].queryset = get_model_list(initial['rft_rolldown_plants'], initial['rft_rolldown_markets'], initial['rft_rolldown_base_models'], initial['rft_rolldown_stations'])
+						self.fields['rft_rolldown_stations'].queryset = get_station_list(initial['rft_rolldown_plants'], initial['rft_rolldown_markets'], initial['rft_rolldown_base_models'], initial['rft_rolldown_models'])
+					else:
+						self.fields['rft_rolldown_markets'].enabled = True
+						self.fields['rft_rolldown_markets'].queryset = get_market_list(initial['rft_rolldown_plants'])
+						self.fields['rft_rolldown_shifts'].enabled = True
+						self.fields['rft_rolldown_shifts'].queryset = get_shift_list(initial['rft_rolldown_plants'])
+						self.fields['rft_rolldown_base_models'].enabled = True
+						self.fields['rft_rolldown_base_models'].queryset = get_base_list(initial['rft_rolldown_plants'])
+						self.fields['rft_rolldown_models'].enabled = True
+						self.fields['rft_rolldown_models'].queryset = get_model_list(initial['rft_rolldown_plants'])
+						self.fields['rft_rolldown_stations'].enabled = True
+						self.fields['rft_rolldown_stations'].queryset = get_station_list(initial['rft_rolldown_plants'])
 			else:
 				self.initiate_tafe()
 		except KeyError:
@@ -396,17 +411,33 @@ class RftFinalFilterForm(forms.Form):
 		try:
 			if initial != {}:
 				self.fields['rft_final_plants'].queryset = get_plant_list()
-				self.fields['rft_final_plants'].initial = get_plant_list(initial['rft_final_plants'])
-				self.fields['rft_final_markets'].queryset = get_market_list(initial['rft_final_plants'])
-				self.fields['rft_final_markets'].disabled = True
-				self.fields['rft_final_shifts'].queryset = get_shift_list(initial['rft_final_plants'])
-				self.fields['rft_final_shifts'].disabled = True
-				self.fields['rft_final_base_models'].queryset = get_base_list(initial['rft_final_plants'])
-				self.fields['rft_final_base_models'].disabled = True
-				self.fields['rft_final_models'].queryset = get_model_list(initial['rft_final_plants'])
-				self.fields['rft_final_models'].disabled = True
-				self.fields['rft_final_stations'].queryset = get_station_list(initial['rft_final_plants'])
-				self.fields['rft_final_stations'].disabled = True
+				self.fields['rft_final_plants'].initial = initial['rft_final_plants']
+
+				if initial['rft_final_plants'] == '':
+					self.fields['rft_final_markets'].disabled = True
+					self.fields['rft_final_shifts'].disabled = True
+					self.fields['rft_final_base_models'].disabled = True
+					self.fields['rft_final_models'].disabled = True
+					self.fields['rft_final_stations'].disabled = True
+				else:
+					if len(initial) > 2:
+						self.fields['rft_final_markets'].queryset = get_market_list(initial['rft_final_plants'], initial['rft_final_base_models'], initial['rft_final_models'])
+						self.fields['rft_final_shifts'].queryset = get_shift_list(initial['rft_final_plants'])
+						self.fields['rft_final_base_models'].queryset = get_base_list(initial['rft_final_plants'], initial['rft_final_markets'], initial['rft_final_models'])
+						self.fields['rft_final_models'].queryset = get_model_list(initial['rft_final_plants'], initial['rft_final_markets'], initial['rft_final_base_models'])
+						self.fields['rft_final_stations'].queryset = get_station_list(initial['rft_final_plants'], initial['rft_final_markets'], initial['rft_final_base_models'], initial['rft_final_models'])
+						self.fields['rft_final_stations'].disabled = True
+					else:
+						self.fields['rft_final_markets'].enabled = True
+						self.fields['rft_final_markets'].queryset = get_market_list(initial['rft_final_plants'])
+						self.fields['rft_final_shifts'].enabled = True
+						self.fields['rft_final_shifts'].queryset = get_shift_list(initial['rft_final_plants'])
+						self.fields['rft_final_base_models'].enabled = True
+						self.fields['rft_final_base_models'].queryset = get_base_list(initial['rft_final_plants'])
+						self.fields['rft_final_models'].enabled = True
+						self.fields['rft_final_models'].queryset = get_model_list(initial['rft_final_plants'])
+						self.fields['rft_final_stations'].queryset = get_station_list(initial['rft_final_plants'])
+						self.fields['rft_final_stations'].disabled = True
 			else:
 				self.initiate_tafe()
 		except KeyError:
@@ -433,8 +464,9 @@ class RftFinalFilterForm(forms.Form):
 
 	def set_initial_value(self, user, initial):
 		try:
-			for field in ['rft_final_markets', 'rft_final_shifts', 'rft_final_base_models', 'rft_final_models']:
-				self.fields[field].initial = initial[field]
+			if len(initial) > 2:
+				for field in ['rft_final_markets', 'rft_final_shifts', 'rft_final_base_models', 'rft_final_models']:
+					self.fields[field].initial = initial[field]
 		except KeyError:
 			pass
 		except ValueError:
@@ -530,17 +562,33 @@ class RftOverallFilterForm(forms.Form):
 		try:
 			if initial != {}:
 				self.fields['rft_overall_plants'].queryset = get_plant_list()
-				self.fields['rft_overall_plants'].initial = get_plant_list(initial['rft_final_plants'])
-				self.fields['rft_overall_markets'].queryset = get_market_list(initial['rft_final_plants'])
-				self.fields['rft_overall_markets'].disabled = True
-				self.fields['rft_overall_shifts'].queryset = get_shift_list(initial['rft_final_plants'])
-				self.fields['rft_overall_shifts'].disabled = True
-				self.fields['rft_overall_base_models'].queryset = get_base_list(initial['rft_final_plants'])
-				self.fields['rft_overall_base_models'].disabled = True
-				self.fields['rft_overall_models'].queryset = get_model_list(initial['rft_final_plants'])
-				self.fields['rft_overall_models'].disabled = True
-				self.fields['rft_overall_stations'].queryset = get_station_list(initial['rft_final_plants'])
-				self.fields['rft_overall_stations'].disabled = True
+				self.fields['rft_overall_plants'].initial = initial['rft_overall_plants']
+
+				if initial['rft_overall_plants'] == '':
+					self.fields['rft_overall_markets'].disabled = True
+					self.fields['rft_overall_shifts'].disabled = True
+					self.fields['rft_overall_base_models'].disabled = True
+					self.fields['rft_overall_models'].disabled = True
+					self.fields['rft_overall_stations'].disabled = True
+				else:
+					if len(initial) > 2:
+						self.fields['rft_overall_markets'].queryset = get_market_list(initial['rft_overall_plants'], initial['rft_overall_base_models'], initial['rft_overall_models'])
+						self.fields['rft_overall_shifts'].queryset = get_shift_list(initial['rft_overall_plants'])
+						self.fields['rft_overall_base_models'].queryset = get_base_list(initial['rft_overall_plants'], initial['rft_overall_markets'], initial['rft_overall_models'])
+						self.fields['rft_overall_models'].queryset = get_model_list(initial['rft_overall_plants'], initial['rft_overall_markets'], initial['rft_overall_base_models'])
+						self.fields['rft_overall_stations'].queryset = get_station_list(initial['rft_overall_plants'], initial['rft_overall_markets'], initial['rft_overall_base_models'])
+						self.fields['rft_overall_stations'].disabled = True
+					else:
+						self.fields['rft_overall_markets'].enabled = True
+						self.fields['rft_overall_markets'].queryset = get_market_list(initial['rft_overall_plants'])
+						self.fields['rft_overall_shifts'].enabled = True
+						self.fields['rft_overall_shifts'].queryset = get_shift_list(initial['rft_overall_plants'])
+						self.fields['rft_overall_base_models'].enabled = True
+						self.fields['rft_overall_base_models'].queryset = get_base_list(initial['rft_overall_plants'])
+						self.fields['rft_overall_models'].enabled = True
+						self.fields['rft_overall_models'].queryset = get_model_list(initial['rft_overall_plants'])
+						self.fields['rft_overall_stations'].queryset = get_station_list(initial['rft_overall_plants'])
+						self.fields['rft_overall_stations'].disabled = True
 			else:
 				self.initiate_tafe()
 		except KeyError:
@@ -567,8 +615,9 @@ class RftOverallFilterForm(forms.Form):
 
 	def set_initial_value(self, user, initial):
 		try:
-			for field in ['rft_overall_markets', 'rft_overall_shifts', 'rft_overall_base_models', 'rft_overall_models']:
-				self.fields[field].initial = initial[field]
+			if len(initial) > 2:
+				for field in ['rft_overall_markets', 'rft_overall_shifts', 'rft_overall_base_models', 'rft_overall_models']:
+					self.fields[field].initial = initial[field]
 		except KeyError:
 			pass
 		except ValueError:
