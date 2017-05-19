@@ -92,7 +92,8 @@ class Models(models.Model):
 signals.post_save.connect(save_updated_table, sender=Models)        
 
 class ModelParts(models.Model):
-    parts = models.ForeignKey(Parts,on_delete=models.CASCADE)  
+    parts = models.ForeignKey(Parts,on_delete=models.CASCADE)
+    last_modified_date = models.DateTimeField(auto_now_add=True, null=True)  
     models = models.ForeignKey(Models, on_delete=models.CASCADE)  
 
     class Meta:
