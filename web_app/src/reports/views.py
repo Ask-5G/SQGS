@@ -4,7 +4,7 @@ from django.views import View
 from django.views.generic import TemplateView
 from basemodel.models import Models
 from organization.models import * 
-from inspection.models import VinStatus, VinDetails, Verification, DefectsPerUnit, FinalRFT, InspectionDefects, CheckpointDefects, DefectClosure
+from inspection.models import VinStatus, VinDetails, Verification, DefectsPerUnit, FinalRFT, InspectionDefects, DefectClosure
 from checkpoints.models import * 
 from datetime import date, datetime, timedelta as td
 from django.core.urlresolvers import reverse
@@ -865,11 +865,10 @@ class VinDetailsView(View):
 
         response = self.render_to_template(verification, request, vin_number)
         inspection_defects = InspectionDefects.objects.filter(vin__vin = vin_number)
-        print inspection_defects
         inspection_defect_and_defect_closure = []
         for inspection_defect in inspection_defects:
             if inspection_defect.checkpoints:
-                try:
+                try:    
                     check_point_defect = CheckpointDefects.objects.get(
                         checkpoints=inspection_defect.checkpoints)
                 except:
@@ -882,7 +881,6 @@ class VinDetailsView(View):
                 )
             except:
                 defects_closure = ""
-            
             inspection_defect_and_defect_closure.append({
                 "inspection_defect":inspection_defect,
                 "defect_closure":defects_closure,

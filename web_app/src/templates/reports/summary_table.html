@@ -90,6 +90,8 @@
         "url": url,
         "data" : data,
         success: function(data) {
+            $("#vin_details_table").html("");
+            $("#inspection_defect_details_table").html("");
             $("#vin_table").html(data);
         },
       });
