@@ -114,7 +114,10 @@ class RftSearchView(View):
         no_of_tractors = []
         mark_data = []         
         for _date in date_list:
-            current_vin = vin.filter(timestamp__contains=parse(_date).strftime('%Y-%d-%m'))
+            my_date = datetime.strptime(_date, '%d-%m-%Y')
+            # current_vin = vin.filter(timestamp__contains=parse(_date).strftime('%Y-%d-%m'))
+            current_vin = vin.filter(timestamp__contains=datetime.strftime(my_date, '%Y-%m-%d'))
+
             overall_obj = FinalRFT.objects.filter(vin__in=set(current_vin))
             
             rft_ok.append(overall_obj.filter(overall_status='RFT OK').count())
@@ -150,7 +153,9 @@ class RftSearchView(View):
         no_of_tractors = []  
         mark_data = []    
         for _date in date_list:
-            current_vin = vin.filter(timestamp__contains=parse(_date).strftime('%Y-%d-%m'))
+            my_date = datetime.strptime(_date, '%d-%m-%Y')
+            # current_vin = vin.filter(timestamp__contains=parse(_date).strftime('%Y-%d-%m'))
+            current_vin = vin.filter(timestamp__contains=datetime.strftime(my_date, '%Y-%m-%d'))
             final_obj = FinalRFT.objects.filter(vin__in=set(current_vin))
 
             rft_ok.append(final_obj.filter(final_status='RFT OK').count())
@@ -186,7 +191,9 @@ class RftSearchView(View):
         no_of_tractors = []
         mark_data = []
         for _date in date_list:
-            current_vin = vin.filter(timestamp__contains=parse(_date).strftime('%Y-%d-%m'))
+            my_date = datetime.strptime(_date, '%d-%m-%Y')
+            # current_vin = vin.filter(timestamp__contains=parse(_date).strftime('%Y-%d-%m'))
+            current_vin = vin.filter(timestamp__contains=datetime.strftime(my_date, '%Y-%m-%d'))
             vin_status_obj = VinStatus.objects.filter(vin__in=set(current_vin))
 
             rft_ok.append(vin_status_obj.filter(status='RFT OK').count())
@@ -267,7 +274,9 @@ class RftRolldownView(View):
             if 'form[rft_rolldown_stations]' in form and form['form[rft_rolldown_stations]'] != [u'']:
                 vin = vin.filter(stations=int(form['form[rft_rolldown_stations]'][0]))
               
-            current_vin = vin.filter(timestamp__contains=parse(_date).strftime('%Y-%d-%m'))
+            my_date = datetime.strptime(_date, '%d-%m-%Y')
+            # current_vin = vin.filter(timestamp__contains=parse(_date).strftime('%Y-%d-%m'))
+            current_vin = vin.filter(timestamp__contains=datetime.strftime(my_date, '%Y-%m-%d'))
             
             # if 'rft_rolldown_stations' in request.POST and form['form[rft_rolldown_stations]'] != [u'']:
             #     vin_obj = Verification.objects.filter(vin__in=set(current_vin))
@@ -352,7 +361,9 @@ class RftFinalView(View):
             # if form['form[rft_final_stations]'] != [u'']:
             #     vin = vin.filter(stations=int(form['form[rft_final_stations]'][0]))
           
-            current_vin = vin.filter(timestamp__contains=parse(_date).strftime('%Y-%d-%m'))
+            my_date = datetime.strptime(_date, '%d-%m-%Y')
+            # current_vin = vin.filter(timestamp__contains=parse(_date).strftime('%Y-%d-%m'))
+            current_vin = vin.filter(timestamp__contains=datetime.strftime(my_date, '%Y-%m-%d'))
             
             # if form['form[rft_final_stations]'] != [u'']:
             #     vin_obj = Verification.objects.filter(vin__in=set(current_vin))
@@ -439,7 +450,9 @@ class RftOverallView(View):
             # if form['form[rft_final_stations]'] != [u'']:
             #     vin = vin.filter(stations=int(form['form[rft_final_stations]'][0]))
               
-            current_vin = vin.filter(timestamp__contains=parse(_date).strftime('%Y-%d-%m'))
+            my_date = datetime.strptime(_date, '%d-%m-%Y')
+            # current_vin = vin.filter(timestamp__contains=parse(_date).strftime('%Y-%d-%m'))
+            current_vin = vin.filter(timestamp__contains=datetime.strftime(my_date, '%Y-%m-%d'))
             
             # if form['form[rft_final_stations]'] != [u'']:
             #     vin_obj = Verification.objects.filter(vin__in=set(current_vin))
@@ -519,7 +532,8 @@ class DpuSearchView(View):
         defects_data = []
         sourcegates_list = ['DPU']
         for _date in date_list:
-            dpu_obj =  vin.filter(timestamp__contains=parse(_date).strftime('%Y-%d-%m')).exclude(stations__description='Final Inspection')
+            my_date = datetime.strptime(_date, '%d-%m-%Y')
+            dpu_obj =  vin.filter(timestamp__contains=datetime.strftime(my_date, '%Y-%m-%d')).exclude(stations__description='Final Inspection')
             check_point_defects = []
             part_defect = []
             if len(dpu_obj) != 0:
@@ -592,7 +606,8 @@ class DpuSearchView(View):
         defects_data = []
         sourcegates_list = ['DPU']
         for _date in date_list:
-            dpu_obj =  vin.filter(stations__description='Final Inspection').filter(timestamp__contains=parse(_date).strftime('%Y-%d-%m'))
+            my_date = datetime.strptime(_date, '%d-%m-%Y')
+            dpu_obj =  vin.filter(stations__description='Final Inspection').filter(timestamp__contains=datetime.strftime(my_date, '%Y-%m-%d'))
             check_point_defects = []
             part_defect = []
             if len(dpu_obj) != 0:
@@ -666,7 +681,8 @@ class DpuSearchView(View):
         defects_data = []  
         sourcegates_list = ['DPU'] 
         for _date in date_list:
-            dpu_obj =  vin.filter(timestamp__contains=parse(_date).strftime('%Y-%d-%m'))
+            my_date = datetime.strptime(_date, '%d-%m-%Y')
+            dpu_obj =  vin.filter(timestamp__contains=datetime.strftime(my_date, '%Y-%m-%d'))
             check_point_defects = []
             part_defect = []
             if len(dpu_obj) != 0:

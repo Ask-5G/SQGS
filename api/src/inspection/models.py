@@ -40,6 +40,7 @@ class VinDetails(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True, null=True)
     closed_time = models.DateTimeField(auto_now_add=False, null=True)
     last_modified_date = models.DateTimeField(auto_now=True, null=True)
+    shift = models.ForeignKey(Shifts, on_delete=models.CASCADE)
     
     class Meta:
         verbose_name = "Vin Detail"

@@ -27,12 +27,13 @@ class VinDetailsView(APIView):
             )
         verification.save()
 
-    def vin_create(self, vin_num, models, users, stations):
+    def vin_create(self, vin_num, models, users, stations, shifts):
         vindetails = VinDetails(
             vin = vin_num, 
             model = models, 
             users = users,
-            stations = stations
+            stations = stations,
+            shift = shifts
          )
         vindetails.save()
         self.cmd_verification(vindetails, stations)
@@ -52,6 +53,7 @@ class VinDetailsView(APIView):
         models = Models.objects.get(id=request.data.get('model'))
         users = Users.objects.get(id=request.data.get('users'))
         stations = Stations.objects.get(id=request.data.get('stations'))
+        shifts = Shifts.objects.get(id=request.data.get('shift'))
         vin_obj = VinDetails.objects.filter(vin=vin_num)
         if stations.description != 'Final Inspection':
             if len(vin_obj) != 0:
@@ -65,7 +67,7 @@ class VinDetailsView(APIView):
                     else:
                         Verification.objects.filter(vin=vin.id, stations=vin.stations).update(defects_count = inspection_defects.count(),\
                             closure_count = defect_closure.count(),status='RFT NOT OK')
-                vindetails = self.vin_create(vin_num, models, users, stations)
+                vindetails = self.vin_create(vin_num, models, users, stations, shifts)
                 vin_list = vin_obj.values_list('id', flat=True)
                 tot_defects = InspectionDefects.objects.filter(vin__in=vin_list).count()
                 tot_closure = DefectClosure.objects.filter(inspection_defects__vin__in=vin_list).count()
@@ -80,7 +82,7 @@ class VinDetailsView(APIView):
                     status = rep_status
                     )
             else:
-                vindetails = self.vin_create(vin_num, models, users, stations)
+                vindetails = self.vin_create(vin_num, models, users, stations, shifts)
                 vin_status = VinStatus(
                     vin = vin_num,
                     tot_defects = 0,
@@ -93,7 +95,8 @@ class VinDetailsView(APIView):
             vin = vin_num, 
             model = models, 
             users = users,
-            stations = stations
+            stations = stations,
+            shift = shifts
             )
             vindetails.save()
         serializer = VinDetailsSerializer(vindetails)

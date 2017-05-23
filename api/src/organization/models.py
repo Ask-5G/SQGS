@@ -62,6 +62,9 @@ class ModelStations(models.Model):
     model = models.ForeignKey(Models, on_delete=models.CASCADE)  # Field name made lowercase.
     station = models.ForeignKey(Stations, on_delete=models.CASCADE)  # Field name made lowercase.
     last_modified_date = models.DateTimeField(auto_now=True, null=True)
+    station_order = models.IntegerField()
+    is_rolldown = models.BooleanField(default=False)
+    is_final = models.BooleanField(default=False)
 
     class Meta:
         verbose_name = "Model Station"

@@ -13,6 +13,7 @@ class VinDetailsSerializer(serializers.ModelSerializer):
         instance.model_id = validated_data.get('model_id', instance.model_id)
         instance.users_id = validated_data.get('users_id', instance.users_id)
         instance.stations_id = validated_data.get('stations_id', instance.stations_id)
+        instance.shift_id = validated_data.get('shift_id', instance.shift_id)
         instance.save()
         return instance
 
