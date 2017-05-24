@@ -288,6 +288,12 @@ echarts.init(document.getElementById("rolldown_date_wise"), a);
                 xAxis: [{
                     type: "category",
                     name: "Date",
+                    axisLabel : {
+                        show:true,
+                        interval: 0,    // {number}
+                        rotate: 45,
+                        margin: 8
+                    },
                     data: data.rolldown.date_list
                 }],
                 yAxis: [{
@@ -392,6 +398,12 @@ echarts.init(document.getElementById("final_date_wise"), a);
                 xAxis: [{
                     type: "category",
                     name: "Date",
+                    axisLabel : {
+                        show:true,
+                        interval: 0,    // {number}
+                        rotate: 45,
+                        margin: 8
+                    },
                     data: data.final.date_list
                 }],
                 yAxis: [{
@@ -495,6 +507,12 @@ echarts.init(document.getElementById("overall_date_wise"), a);
                 xAxis: [{
                     type: "category",
                     name: "Date",
+                    axisLabel : {
+                        show:true,
+                        interval: 0,    // {number}
+                        rotate: 45,
+                        margin: 8
+                    },
                     data: data.overall.date_list
                 }],
                 yAxis: [{
@@ -815,6 +833,12 @@ echarts.init(document.getElementById("rolldown_filter_wise"), a);
                 xAxis: [{
                     type: "category",
                     name: "Date",
+                    axisLabel : {
+                        show:true,
+                        interval: 0,    // {number}
+                        rotate: 45,
+                        margin: 8
+                    },
                     data: data.date_list
                 }],
                 yAxis: [{
@@ -1135,6 +1159,12 @@ echarts.init(document.getElementById("final_filter_wise"), a);
                 xAxis: [{
                     type: "category",
                     name: "Date",
+                    axisLabel : {
+                        show:true,
+                        interval: 0,    // {number}
+                        rotate: 45,
+                        margin: 8
+                    },
                     data: data.date_list
                 }],
                 yAxis: [{
@@ -1455,6 +1485,12 @@ echarts.init(document.getElementById("overall_filter_wise"), a);
                 xAxis: [{
                     type: "category",
                     name: "Date",
+                    axisLabel : {
+                        show:true,
+                        interval: 0,    // {number}
+                        rotate: 45,
+                        margin: 8
+                    },
                     data: data.date_list
                 }],
                 yAxis: [{
@@ -1829,6 +1865,12 @@ function dpu_date_wise_charts(data){
                 xAxis: [{
                     type: "category",
                     name: "Date",
+                    axisLabel : {
+                        show:true,
+                        interval: 0,    // {number}
+                        rotate: 45,
+                        margin: 8
+                    },
                     data: data.rolldown.date_list
                 }],
                 yAxis: [{
@@ -1913,6 +1955,12 @@ function dpu_date_wise_charts(data){
                 xAxis: [{
                     type: "category",
                     name : "Date",
+                    axisLabel : {
+                        show:true,
+                        interval: 0,    // {number}
+                        rotate: 45,
+                        margin: 8
+                    },
                     data: data.final.date_list
                 }],
                 yAxis: [{
@@ -1997,6 +2045,12 @@ function dpu_date_wise_charts(data){
                 xAxis: [{
                     type: "category",
                     name: "Date",
+                    axisLabel : {
+                        show:true,
+                        interval: 0,    // {number}
+                        rotate: 45,
+                        margin: 8
+                    },
                     data: data.overall.date_list
                 }],
                 yAxis: [{

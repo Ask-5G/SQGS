@@ -257,7 +257,7 @@ class RftRolldownView(View):
         self.mark_data = []  
         self.no_of_tractors = []
 
-    def rft_rolldown_chart_data(self, user, vin, form, date_list):
+    def rft_rolldown_chart_data(self, request, user, vin, form, date_list):
         for _date in date_list:
             # if user['plant'] == '':
             if form['form[rft_rolldown_plants]'] != [u'']:
@@ -265,8 +265,8 @@ class RftRolldownView(View):
             # else:
             if 'form[rft_rolldown_markets]' in form and form['form[rft_rolldown_markets]'] != [u'']:
                 vin = vin.filter(model__market=int(form['form[rft_rolldown_markets]'][0]))
-            # if form['form[rft_rolldown_shifts]'] != [u'']:
-            #     vin = vin.filter(timestamp__contains=parse(_date).strftime('%Y-%d-%m')).filter(model__markets=form['form[rft_rolldown_markets]'][0])
+            if form['form[rft_rolldown_shifts]'] != [u'']:
+                vin = vin.filter(shift=int(form['form[rft_rolldown_shifts]'][0]))
             if 'form[rft_rolldown_base_models]' in form and form['form[rft_rolldown_base_models]'] != [u'']:
                 vin = vin.filter(model__base_models=int(form['form[rft_rolldown_base_models]'][0]))
             if 'form[rft_rolldown_models]' in form and form['form[rft_rolldown_models]'] != [u'']:
@@ -278,11 +278,11 @@ class RftRolldownView(View):
             # current_vin = vin.filter(timestamp__contains=parse(_date).strftime('%Y-%d-%m'))
             current_vin = vin.filter(timestamp__contains=datetime.strftime(my_date, '%Y-%m-%d'))
             
-            # if 'rft_rolldown_stations' in request.POST and form['form[rft_rolldown_stations]'] != [u'']:
-            #     vin_obj = Verification.objects.filter(vin__in=set(current_vin))
-            # else:
-            #     vin_obj = VinStatus.objects.filter(vin__in=set(current_vin))
-            vin_obj = VinStatus.objects.filter(vin__in=set(current_vin))
+            if 'rft_rolldown_stations' in request.POST and form['form[rft_rolldown_stations]'] != [u'']:
+                vin_obj = Verification.objects.filter(vin__in=set(current_vin))
+            else:
+                vin_obj = VinStatus.objects.filter(vin__in=set(current_vin))
+            # vin_obj = VinStatus.objects.filter(vin__in=set(current_vin))
             self.rft_ok.append(vin_obj.filter(status='RFT OK').count())
             self.not_ok.append(vin_obj.filter(status='RFT NOT OK').count())
             self.no_of_tractors.append(vin_obj.count())
@@ -331,7 +331,7 @@ class RftRolldownView(View):
         date_to = parse(request.POST.get('to_date')).strftime('%Y-%m-%d %H:%M:%S')
         vin = vin_obj.extra(where=["timestamp >= '%s' and timestamp <= '%s'"%(date_from,date_to)])
         # form = [self.removekey(form, key) for key in ['from_date', 'to_date']]
-        data = self.rft_rolldown_chart_data(user, vin, form, date_list)
+        data = self.rft_rolldown_chart_data(request, user, vin, form, date_list)
 
         return JsonResponse(data, safe=False)
 
@@ -352,8 +352,8 @@ class RftFinalView(View):
             # else:
             if 'form[rft_final_markets]' in form and form['form[rft_final_markets]'] != [u'']:
                 vin = vin.filter(model__market=int(form['form[rft_final_markets]'][0]))
-            # if form['form[rft_final_shifts]'] != [u'']:
-            #     vin = vin.filter(timestamp__contains=parse(_date).strftime('%Y-%d-%m')).filter(model__markets=form['form[rft_final_markets]'][0])
+            if form['form[rft_final_shifts]'] != [u'']:
+                vin = vin.filter(shift=int(form['form[rft_final_shifts]'][0]))
             if 'form[rft_final_base_models]' in form and form['form[rft_final_base_models]'] != [u'']:
                 vin = vin.filter(model__base_models=int(form['form[rft_final_base_models]'][0]))
             if 'form[rft_final_models]' in form and form['form[rft_final_models]'] != [u'']:
@@ -441,8 +441,8 @@ class RftOverallView(View):
             # else:
             if 'form[rft_overall_markets]' in form and form['form[rft_overall_markets]'] != [u'']:
                 vin = vin.filter(model__market=int(form['form[rft_overall_markets]'][0]))
-            # if form['form[rft_final_shifts]'] != [u'']:
-            #     vin = vin.filter(timestamp__contains=parse(_date).strftime('%Y-%d-%m')).filter(model__markets=form['form[rft_final_markets]'][0])
+            if form['form[rft_overall_shifts]'] != [u'']:
+                vin = vin.filter(shift=int(form['form[rft_overall_shifts]'][0]))
             if 'form[rft_overall_base_models]' in form and form['form[rft_overall_base_models]'] != [u'']:
                 vin = vin.filter(model__base_models=int(form['form[rft_overall_base_models]'][0]))
             if 'form[rft_overall_models]' in form and form['form[rft_overall_models]'] != [u'']:
