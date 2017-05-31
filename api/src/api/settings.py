@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'modelclone',
     'import_export',
+    'easy_select2',
 ]
 
 MIDDLEWARE = [

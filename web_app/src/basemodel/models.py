@@ -22,7 +22,7 @@ def save_updated_table(sender, instance, created, **kwargs):
         )
 
 class Parts(models.Model):   
-    description = models.CharField(max_length=45)
+    description = models.CharField(max_length=45, unique=True)
     images = models.ForeignKey(Images, on_delete=models.CASCADE, null=True) 
     last_modified_date = models.DateTimeField(auto_now=True, null=True)
 

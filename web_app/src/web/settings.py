@@ -46,7 +46,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'modelclone',
     'import_export',
-    'mathfilters'
+    'mathfilters',
+    'easy_select2',
 ]
 
 MIDDLEWARE = [

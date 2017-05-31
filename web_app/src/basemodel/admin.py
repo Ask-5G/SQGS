@@ -18,6 +18,9 @@ from import_export import resources, fields
 from import_export.widgets import *
 
 from import_export.admin import ImportExportModelAdmin
+from easy_select2 import select2_modelform
+
+PartsForm = select2_modelform(Parts)
 
 class ModelStationsInline(admin.StackedInline):
     model = ModelStations
@@ -52,6 +55,7 @@ class ModelAdmin(ClonableModelAdmin,ImportExportModelAdmin):
         model = Models
 
 class PartAdmin(ClonableModelAdmin, ImportExportModelAdmin):
+    form = PartsForm        
     inlines = ModelPartsInline, CheckpointsInline
     clone_verbose_name = 'Clone it!'
   
