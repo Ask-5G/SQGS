@@ -22,8 +22,12 @@
                     </ul>
                     <div class="clearfix"></div>
                   </div>
+                  <div id="rolldown_filter_form_div" class="panel-body">
+                    {% include "reports/dpu_rolldown_filter.html" %}
+                </div>
                   <div class="x_content2">
-                    <div id="rolldown_dpu_date_wise" style="width:100%; height:300px;"></div>
+                    <div id="dpu_rolldown_date_wise" style="width:100%; height:300px;"></div>
+                    <div id="dpu_rolldown_filter_wise" style="width:100%; height:300px;"></div>
                   </div>
                 </div>
       </div>
@@ -51,8 +55,12 @@
                     </ul>
                     <div class="clearfix"></div>
                   </div>
+                  <div id="final_filter_form_div" class="panel-body">
+                    {% include "reports/dpu_final_filter.html" %}
+                </div>
                   <div class="x_content2">
-                    <div id="final_dpu_date_wise" style="width:100%; height:300px;"></div>
+                    <div id="dpu_final_date_wise" style="width:100%; height:300px;"></div>
+                   <div id="dpu_final_filter_wise" style="width:100%; height:300px;"></div>
                   </div>
                 </div>
       </div>
@@ -80,9 +88,101 @@
                     </ul>
                     <div class="clearfix"></div>
                   </div>
+                  <div id="overall_filter_form_div" class="panel-body">
+                    {% include "reports/dpu_overall_filter.html" %}
+                </div>
                   <div class="x_content2">
-                    <div id="overall_dpu_date_wise" style="width:100%; height:300px;"></div>
+                    <div id="dpu_overall_date_wise" style="width:100%; height:300px;"></div>
+                    <div id="dpu_overall_filter_wise" style="width:100%; height:300px;"></div>
                   </div>
                 </div>
       </div>
       <!-- /line graph -->
+
+{% block script %}
+<script type="text/javascript">
+$(document).ready(function(){
+$('#dpu_rolldown_filter_wise').hide();
+$('#dpu_final_filter_wise').hide();
+$('#dpu_overall_filter_wise').hide();
+});
+/* Generating CSRF-TOKEN for AJAX POST*/
+$.ajaxSetup({
+     beforeSend: function(xhr, settings) {
+         function getCookie(name) {
+             var cookieValue = null;
+             if (document.cookie && document.cookie != '') {
+                 var cookies = document.cookie.split(';');
+                 for (var i = 0; i < cookies.length; i++) {
+                     var cookie = jQuery.trim(cookies[i]);
+                     // Does this cookie string begin with the name we want?
+                     if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                         cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                         break;
+                     }
+                 }
+             }
+             return cookieValue;
+         }
+         if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+             // Only send the token to relative URLs i.e. locally.
+             xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+         }
+     }
+});
+
+function dpu_filter_refresh(){
+    // alert()
+    $('#id_dpu_rolldown_plants').val("");
+    $('#id_dpu_rolldown_markets').val("");
+    $('#id_dpu_rolldown_shifts').val("");
+    $('#id_dpu_rolldown_base_models').val("");
+    $('#id_dpu_rolldown_models').val("");
+    $('#id_dpu_rolldown_sourcegates').val("");
+    $('#id_dpu_final_plants').val("");
+    $('#id_dpu_final_markets').val("");
+    $('#id_dpu_final_shifts').val("");
+    $('#id_dpu_final_base_models').val("");
+    $('#id_dpu_final_models').val("");
+    $('#id_dpu_overall_plants').val("");
+    $('#id_dpu_overall_markets').val("");
+    $('#id_dpu_overall_shifts').val("");
+    $('#id_dpu_overall_base_models').val("");
+    $('#id_dpu_overall_models').val("");
+    $('#id_dpu_overall_sourcegates').val("");
+    $('#id_dpu_final_sourcegates').val("");
+
+
+}
+
+function dpu_div_refresh() {
+    $('#dpu_rolldown_filter_wise').html("");
+    $('#dpu_final_filter_wise').html("");
+    $('#dpu_overall_filter_wise').html("");
+    $('#dpu_rolldown_filter_wise').hide();
+    $('#dpu_final_filter_wise').hide();
+    $('#dpu_overall_filter_wise').hide();             
+    $('#dpu_rolldown_date_wise').show();
+    $('#dpu_final_date_wise').show(); 
+    $('#dpu_overall_date_wise').show(); 
+}
+
+$("#dpu_search").click(function(e){
+      e.preventDefault();
+
+      var frm = $(this).closest('form');
+
+      $.ajax({
+        "type": frm.attr('method'),
+        "url": frm.attr('action'),
+        "data" : frm.serialize(),
+        success: function(data) {
+            // alert(data)
+            dpu_div_refresh();
+            dpu_filter_refresh();                     
+            dpu_date_wise_charts(data)
+        },
+    });
+  });
+</script>
+{% endblock %}

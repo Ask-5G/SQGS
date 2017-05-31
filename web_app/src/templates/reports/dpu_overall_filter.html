@@ -1,0 +1,93 @@
+{% load staticfiles %}
+
+<form id='dpu_overall_filter_form' method="POST" action='/dpu/filter/' style="font-size: 12px;" name="dpu_overall_filter">
+    {% csrf_token %}
+    
+    {% if overall_filter_form.dpu_overall_plants %}
+        <div class="col-md-2 col-lg-2 col-sm-2 col-xs-3 form-group">
+        <label for="id_dpu_overall_plants">Plants:</label>
+        {{overall_filter_form.dpu_overall_plants}}
+        </div>
+    {% endif %}
+    {% if overall_filter_form.dpu_overall_markets %}
+        <div class="col-md-2 col-lg-2 col-sm-2 col-xs-3 form-group">
+        <label for="id_dpu_overall_plants">Markets:</label>
+        {{overall_filter_form.dpu_overall_markets}}
+        </div>
+    {% endif %}
+    {% if overall_filter_form.dpu_overall_shifts %}
+        <div class="col-md-2 col-lg-2 col-sm-2 col-xs-3 form-group">
+        <label for="id_dpu_overall_shifts">Shifts:</label>
+        {{overall_filter_form.dpu_overall_shifts}}
+        </div>
+    {% endif %}
+    {% if overall_filter_form.dpu_overall_base_models %}
+        <div class="col-md-2 col-lg-2 col-sm-2 col-xs-3 form-group">
+        <label for="id_dpu_overall_models">Base Models:</label>
+        {{overall_filter_form.dpu_overall_base_models}}
+        </div>
+    {% endif %}
+    {% if overall_filter_form.dpu_overall_models %}
+        <div class="col-md-2 col-lg-2 col-sm-2 col-xs-3 form-group">
+        <label for="id_dpu_overall_models">Models:</label>
+        {{overall_filter_form.dpu_overall_models}}
+        </div>
+    {% endif %}
+    {% if overall_filter_form.dpu_overall_sourcegates %}
+        <div class="col-md-2 col-lg-2 col-sm-2 col-xs-3 form-group">
+        <label for="id_dpu_overall_sourcegates">SourceGates:</label>
+        {{overall_filter_form.dpu_overall_sourcegates}}
+        </div>
+    {% endif %}
+</form>
+{% block script %}
+<script type="text/javascript">
+$("#id_dpu_overall_plants, #id_dpu_overall_markets, #id_dpu_overall_shifts, #id_dpu_ovarall_base_models, #id_dpu_overall_models, #id_dpu_overall_sourcegates").change(function (e) {
+      // alert("donnn")
+      e.preventDefault();
+
+      var frm = $(this).closest('form');
+      var from_date = $("#dpu_filter input[name=from_date]").val();
+      var to_date = $("#dpu_filter input[name=to_date]").val();   
+      // alert()
+      $.ajax({
+        url: frm.attr('action'),
+        method: frm.attr('method'),
+        data : frm.serialize(),
+        success: function (data) {
+            $('#overall_filter_form_div').html(data);
+            var frm = $('#dpu_overall_filter_form')
+            $.ajax({
+              url: '{% url 'dpu_overall_view' %}',
+              method: 'POST',
+              data: {
+                'from_date': from_date,
+                'to_date': to_date,
+                'form': getFormData(frm),
+              },
+              dataType: 'json',
+              success: function (data) {
+                  // alert(data)
+                  $('#dpu_overall_date_wise').html("");
+                  $('#dpu_overall_date_wise').hide();
+                  $('#dpu_overall_filter_wise').html("");
+                  $('#dpu_overall_filter_wise').show();
+                  overall_filter_wise_charts(data)
+              }
+            });   
+        }
+      });
+    });
+
+function getFormData($form){
+    var unindexed_array = $form.serializeArray();
+    var indexed_array = {};
+
+    $.map(unindexed_array, function(n, i){
+        indexed_array[n['name']] = n['value'];
+    });
+
+    return indexed_array;
+}
+</script>
+{% endblock %}

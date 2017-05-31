@@ -1,0 +1,93 @@
+{% load staticfiles %}
+
+<form id='dpu_rolldown_filter_form' method="POST" action='/dpu/filter/' style="font-size: 12px;" name="dpu_rolldown_filter">
+    {% csrf_token %}
+    
+    {% if rolldown_filter_form.dpu_rolldown_plants %}
+        <div class="col-md-2 col-lg-2 col-sm-2 col-xs-3 form-group">
+        <label for="id_dpu_rolldown_plants">Plants:</label>
+        {{rolldown_filter_form.dpu_rolldown_plants}}
+        </div>
+    {% endif %}
+    {% if rolldown_filter_form.dpu_rolldown_markets %}
+        <div class="col-md-2 col-lg-2 col-sm-2 col-xs-3 form-group">
+        <label for="id_dpu_rolldown_markets">Markets:</label>
+        {{rolldown_filter_form.dpu_rolldown_markets}}
+        </div>
+    {% endif %}
+    {% if rolldown_filter_form.dpu_rolldown_shifts %}
+        <div class="col-md-2 col-lg-2 col-sm-2 col-xs-3 form-group">
+        <label for="id_dpu_rolldown_shifts">Shifts:</label>
+        {{rolldown_filter_form.dpu_rolldown_shifts}}
+        </div>
+    {% endif %}
+    {% if rolldown_filter_form.dpu_rolldown_base_models %}
+        <div class="col-md-2 col-lg-2 col-sm-2 col-xs-3 form-group">
+        <label for="id_dpu_rolldown_base_models">Base Models:</label>
+        {{rolldown_filter_form.dpu_rolldown_base_models}}
+        </div>
+    {% endif %}
+    {% if rolldown_filter_form.dpu_rolldown_models %}
+        <div class="col-md-2 col-lg-2 col-sm-2 col-xs-3 form-group">
+        <label for="id_dpu_rolldown_models">Models:</label>
+        {{rolldown_filter_form.dpu_rolldown_models}}
+        </div>
+    {% endif %}
+    {% if rolldown_filter_form.dpu_rolldown_sourcegates %}
+        <div class="col-md-2 col-lg-2 col-sm-2 col-xs-3 form-group">
+        <label for="id_dpu_rolldown_sourcegates">SourceGates:</label>
+        {{rolldown_filter_form.dpu_rolldown_sourcegates}}
+        </div>
+    {% endif %}
+</form>
+
+{% block script %}
+<script type="text/javascript">
+$("#id_dpu_rolldown_plants, #id_dpu_rolldown_markets, #id_dpu_rolldown_shifts, #id_dpu_rolldown_base_models, #id_dpu_rolldown_models, #id_dpu_rolldown_sourcegates").change(function (e) {
+      e.preventDefault();
+
+      var frm = $(this).closest('form');
+      var from_date = $("#dpu_filter input[name=from_date]").val();
+      var to_date = $("#dpu_filter input[name=to_date]").val();   
+      $.ajax({
+        url: frm.attr('action'),
+        method: frm.attr('method'),
+        data : frm.serialize(),
+        success: function (data) {
+            // alert(data)
+            $('#rolldown_filter_form_div').html(data);
+            var frm = $('#dpu_rolldown_filter_form')
+            $.ajax({
+              url: '{% url 'dpu_rolldown_view' %}',
+              method: 'POST',
+              data: {
+                'from_date': from_date,
+                'to_date': to_date,
+                'form': getFormData(frm),
+              },
+              dataType: 'json',
+              success: function (data) {
+                  // alert(data)
+                  $('#dpu_rolldown_date_wise').html("");
+                  $('#dpu_rolldown_date_wise').hide();
+                  $('#dpu_rolldown_filter_wise').html("");
+                  $('#dpu_rolldown_filter_wise').show();
+                  dpu_rolldown_filter_wise_charts(data)
+              }
+            });   
+        }
+      });
+    });
+
+function getFormData($form){
+    var unindexed_array = $form.serializeArray();
+    var indexed_array = {};
+
+    $.map(unindexed_array, function(n, i){
+        indexed_array[n['name']] = n['value'];
+    });
+
+    return indexed_array;
+}
+</script>
+{% endblock %}

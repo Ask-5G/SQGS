@@ -9,13 +9,15 @@ from checkpoints.models import *
 from datetime import date, datetime, timedelta as td
 from django.core.urlresolvers import reverse
 from django.http import JsonResponse
-from .forms import RftRolldownFilterForm, RftFinalFilterForm, RftOverallFilterForm
+from .forms import *
 from django.views.generic.edit import FormView
 from django.template.response import TemplateResponse
 from dateutil.parser import parse
 from reports.templatetags import custom_tags
 from collections import defaultdict
 from collections import Counter
+from itertools import chain
+
 
 def get_user_dict(request):
     return {
@@ -513,15 +515,69 @@ class RftOverallView(View):
 
         return JsonResponse(data, safe=False)
 
-class DpuView(FormView):
+class DpuView(TemplateView):
     common = Common()
     template_name = 'reports/dpu.html'
 
-    def get(self, request, *args, **kwargs):
-        data = {
-        'username': 'Guest User'
+    def get_context_data(self, **kwargs):
+        user = get_user_dict(self.request)
+        context = super(DpuView, self).get_context_data(**kwargs)
+        rolldown_filter_form = DpuRolldownFilterForm(
+            user=get_user_dict(self.request),#get_user_dict(self.request),
+            )
+        final_filter_form = DpuFinalFilterForm(
+            user=get_user_dict(self.request),#get_user_dict(self.request),
+            )
+        overall_filter_form = DpuOverallFilterForm(
+            user=get_user_dict(self.request),#get_user_dict(self.request),
+            )
+        context = {
+            'username': user['user'],
+            'rolldown_filter_form': rolldown_filter_form,
+            'final_filter_form': final_filter_form,
+            'overall_filter_form': overall_filter_form
         }
-        return render(request, self.template_name, data)
+        return context
+
+class DpuFilterView(View):
+
+    def post(self, request):
+        
+        if 'dpu_rolldown_plants' in request.POST:
+            rolldown_form = DpuRolldownFilterForm(user=get_user_dict(request), initial=request.POST)
+            rolldown_filter_form = self.render_to_dpu_rolldown_template(request, rolldown_form)
+            return JsonResponse(rolldown_filter_form, safe=False)
+        if 'dpu_final_plants' in request.POST:
+            final_form = DpuFinalFilterForm(user=get_user_dict(request), initial=request.POST)
+            final_filter_form = self.render_to_dpu_final_template(request, final_form)
+            return JsonResponse(final_filter_form, safe=False)
+        #import pdb;pdb.set_trace()
+        if 'dpu_overall_plants' in request.POST:
+            overall_form = DpuOverallFilterForm(user=get_user_dict(request), initial=request.POST)
+            overall_filter_form = self.render_to_dpu_overall_template(request, overall_form)
+            return JsonResponse(overall_filter_form, safe=False)
+
+    def render_to_dpu_rolldown_template(self, request, form):
+        template = TemplateResponse(request, 'reports/dpu_rolldown_filter.html', {
+            'rolldown_filter_form': form,
+        })
+        template.render()
+        return template.content
+
+    def render_to_dpu_final_template(self, request, form):
+        template = TemplateResponse(request, 'reports/dpu_final_filter.html', {
+            'final_filter_form': form,
+        })
+        template.render()
+        return template.content
+
+    def render_to_dpu_overall_template(self, request, form):
+        template = TemplateResponse(request, 'reports/dpu_overall_filter.html', {
+            'overall_filter_form': form,
+        })
+        template.render()
+        return template.content
+
 
 class DpuSearchView(View):
     common = Common()
@@ -767,6 +823,457 @@ class DpuSearchView(View):
             'final': final,
             'overall': overall
         }
+        #print data
+        return JsonResponse(data, safe=False)
+
+class DpuRolldownView(View):
+    common = Common()
+    
+    def __init__(self):
+        self.rft_ok = []
+        self.not_ok = []  
+        self.mark_data = []  
+        self.no_of_tractors = []
+
+    def dpu_rolldown_chart_data(self, request, user, vin, form, date_list):
+        dpu_list = [] 
+        mark_data = []  
+        defects_data = []
+        sourcegates_list = ['DPU']
+        for _date in date_list:
+            check_point_defects = []
+            part_defect = []
+            # import pdb;pdb.set_trace()
+            # if user['plant'] == '':
+            if form['form[dpu_rolldown_plants]'] != [u'']:
+                    vin = vin.filter(stations__cells__plants=int(form['form[dpu_rolldown_plants]'][0]))
+            # else:
+            if 'form[dpu_rolldown_markets]' in form and form['form[dpu_rolldown_markets]'] != [u'']:
+                vin = vin.filter(model__market=int(form['form[dpu_rolldown_markets]'][0]))
+            if form['form[dpu_rolldown_shifts]'] != [u'']:
+                vin = vin.filter(shift=int(form['form[dpu_rolldown_shifts]'][0]))
+            if 'form[dpu_rolldown_base_models]' in form and form['form[dpu_rolldown_base_models]'] != [u'']:
+                vin = vin.filter(model__base_models=int(form['form[dpu_rolldown_base_models]'][0]))
+            if 'form[dpu_rolldown_models]' in form and form['form[dpu_rolldown_models]'] != [u'']:
+                vin = vin.filter(model=int(form['form[dpu_rolldown_models]'][0]))
+            if 'form[dpu_rolldown_sourcegates]' in form and form['form[dpu_rolldown_sourcegates]'] != [u'']:
+                sourcegates = SourceGates.objects.get(id=int(form['form[dpu_rolldown_sourcegates]'][0]))
+                # print sourcegates
+                defects = Defects.objects.filter(sourcegates = sourcegates)
+                checkpoint_defects = CheckpointDefects.objects.filter(defects__in = defects)
+                partdefects = PartDefects.objects.filter(defects__in = defects)           
+                check_point_defect_list = []
+                for check_point_defect in checkpoint_defects:
+                    check_point_defect_list.append(check_point_defect.checkpoints.id)
+                inspection_defect_vin = InspectionDefects.objects.filter(checkpoints__in=check_point_defect_list).values_list('vin',flat=True)    
+                inspection_defect_vin_partdefect = InspectionDefects.objects.filter(partdefects__in = partdefects).values_list('vin',flat=True)
+                vin_list = list(chain(inspection_defect_vin, inspection_defect_vin_partdefect))
+                vin = vin.filter(id__in=vin_list)
+                # print vin
+
+              
+            my_date = datetime.strptime(_date, '%d-%m-%Y')
+            current_vin = vin.filter(timestamp__contains=datetime.strftime(my_date, '%Y-%m-%d')).exclude(stations__description='Final Inspection')
+            if len(current_vin) != 0:
+                    defect_overall = 0
+                    for dpu in current_vin:
+                        inspection_defects =  InspectionDefects.objects.filter(vin=dpu).exclude(vin__stations__description='Final Inspection')
+                        defect_overall  += inspection_defects.count()
+                        if len(inspection_defects) !=0:
+                            for inspection_defect in inspection_defects:
+                                if inspection_defect.checkpoints != None:
+                                    try:
+                                        check_point_defect = CheckpointDefects.objects.get(
+                                            checkpoints=inspection_defect.checkpoints).defects
+                                        sourcegate =SourceGates.objects.get(id=check_point_defect.defects.sourcegates.id).description
+                                        check_point_defect_sourcegate_id = check_point_defect.defects.sourcegates.id
+                                        if 'form[dpu_rolldown_sourcegates]' in form and form['form[dpu_rolldown_sourcegates]'] != [u'']:
+                                            sourcegate_id = int(form['form[dpu_rolldown_sourcegates]'][0])
+                                            if check_point_defect_sourcegate_id == sourcegate_id:
+                                                check_point_defects.append(sourcegate)
+                                        else:
+                                            check_point_defects.append(sourcegate)
+                                    except:
+                                        check_point_defect = ""
+                                else:
+                                    try:
+                                        part_defect_obj = PartDefects.objects.get(id=inspection_defect.partdefects.id)
+                                        sourcegate =SourceGates.objects.get(id=part_defect_obj.defects.sourcegates.id).description
+                                        part_defect_sourcegate_id = part_defect_obj.defects.sourcegates.id
+                                        if 'form[dpu_rolldown_sourcegates]' in form and form['form[dpu_rolldown_sourcegates]'] != [u'']:
+                                            sourcegate_id = int(form['form[dpu_rolldown_sourcegates]'][0])
+                                            if part_defect_sourcegate_id == sourcegate_id:
+                                                part_defect.append(sourcegate)
+                                        else:
+                                            part_defect.append(sourcegate)
+                                    except:
+                                        part_defect_obj = ""
+                    tractor_count = current_vin.count()
+                    dpu = float("{0:.2f}".format(defect_overall/float(tractor_count)))
+                    mark_dict={
+                        'name': "Average",
+                        'value': dpu,
+                        'xAxis': _date,
+                        'yAxis': dpu
+                        }
+                    mark_data.append(mark_dict)
+            else:
+                dpu = 0
+            dpu_list.append(dpu)
+            sourcegates = check_point_defects + part_defect
+            d = {x:sourcegates.count(x) for x in sourcegates}
+            sourcegates_list.extend(sourcegates)
+            defects_data.append(d)
+
+        source_list=list(set(sourcegates_list))
+
+        chart_defects = []
+        for source in source_list:
+            defects_list =[]
+            for defects in defects_data:
+                if source in defects:
+                    defects_list.append(defects[source])
+                else:
+                    defects_list.append(0)
+            chart_defects.append(defects_list) 
+        #print chart_defects 
+        data = {
+        'date_list': date_list,
+        'dpu': dpu_list,
+        'mark_data': mark_data,
+        'source_list': source_list,
+        'chart_defects': chart_defects
+        }
+        print data
+        return data
+
+
+    def removekey(self, dictionary, key):
+        remove = dict(dictionary)
+        del remove[key]
+        return remove
+
+    def post(self, request, *args, **kwargs):
+        super(DpuRolldownView, self).__init__()
+        user = get_user_dict(request)
+        form = dict(request.POST)
+        # form = {key: value for key, value in dict(request.POST).items() if value != [u'']}
+        
+        from_date = self.common.parse_date(form['from_date'][0])
+        to_date = self.common.parse_date(form['to_date'][0]) 
+        date_list = self.common.get_date_list(from_date, to_date)
+        
+        vin_obj = self.common.get_vin_details(user)
+        date_from = parse(request.POST.get('from_date')).strftime('%Y-%m-%d %H:%M:%S')
+        date_to = parse(request.POST.get('to_date')).strftime('%Y-%m-%d %H:%M:%S')
+        vin = vin_obj.extra(where=["timestamp >= '%s' and timestamp <= '%s'"%(date_from,date_to)])
+        # form = [self.removekey(form, key) for key in ['from_date', 'to_date']]
+        data = self.dpu_rolldown_chart_data(request, user, vin, form, date_list)
+        #print data
+
+        return JsonResponse(data, safe=False)
+
+class DpuFinalView(View):
+    common = Common()
+    
+    def __init__(self):
+        self.rft_ok = []
+        self.not_ok = []  
+        self.mark_data = []  
+        self.no_of_tractors = []
+
+    def dpu_final_chart_data(self, request, user, vin, form, date_list):
+        dpu_list = [] 
+        mark_data = []  
+        defects_data = []
+        sourcegates_list = ['DPU']
+        for _date in date_list:
+            check_point_defects = []
+            part_defect = []
+            # if user['plant'] == '':
+            if form['form[dpu_final_plants]'] != [u'']:
+               vin = vin.filter(stations__cells__plants=int(form['form[dpu_final_plants]'][0]))
+            # else:
+            if 'form[dpu_fianl_markets]' in form and form['form[dpu_fianl_markets]'] != [u'']:
+                vin = vin.filter(model__market=int(form['form[dpu_fianl_markets]'][0]))
+            if form['form[dpu_final_shifts]'] != [u'']:
+                vin = vin.filter(shift=int(form['form[dpu_final_shifts]'][0]))
+            if 'form[dpu_fianl_base_models]' in form and form['form[dpu_final_base_models]'] != [u'']:
+                vin = vin.filter(model__base_models=int(form['form[dpu_final_base_models]'][0]))
+            if 'form[dpu_final_models]' in form and form['form[dpu_final_models]'] != [u'']:
+                vin = vin.filter(model=int(form['form[dpu_final_models]'][0]))
+            if 'form[dpu_final_sourcegates]' in form and form['form[dpu_final_sourcegates]'] != [u'']:
+                # import pdb;pdb.set_trace()
+                sourcegates = SourceGates.objects.get(id=int(form['form[dpu_final_sourcegates]'][0]))
+                defects = Defects.objects.filter(sourcegates = sourcegates)
+                check_point_defects = CheckpointDefects.objects.filter(defects__in = defects)
+                partdefects = PartDefects.objects.filter(defects__in = defects)           
+                check_point_defect_list = []
+                for check_point_defect in check_point_defects:
+                    check_point_defect_list.append(check_point_defect.checkpoints.id)
+                #import pdb;pdb.set_trace()
+                inspection_defect_vin = InspectionDefects.objects.filter(checkpoints__in=check_point_defect_list).values_list('vin',flat=True)    
+                inspection_defect_vin_partdefect = InspectionDefects.objects.filter(partdefects__in = partdefects).values_list('vin',flat=True)
+                vin_list = list(chain(inspection_defect_vin, inspection_defect_vin_partdefect))
+                vin = vin.filter(id__in=vin_list)
+
+              
+            my_date = datetime.strptime(_date, '%d-%m-%Y')
+            dpu_obj =  vin.filter(stations__description='Final Inspection').filter(timestamp__contains=datetime.strftime(my_date, '%Y-%m-%d'))
+            check_point_defects = []
+            part_defect = []
+            if len(dpu_obj) != 0:
+                    defect_final = 0
+                    for dpu in dpu_obj:
+                        inspection_defects =  InspectionDefects.objects.filter(vin=dpu).filter(vin__stations__description='Final Inspection')
+                        defect_final += inspection_defects.count()
+                        if len(inspection_defects) !=0:
+                            for inspection_defect in inspection_defects:
+                                if inspection_defect.checkpoints != None:
+                                    try:
+                                        check_point_defect = CheckpointDefects.objects.get(
+                                            checkpoints=inspection_defect.checkpoints)
+                                        sourcegate =SourceGates.objects.get(id=check_point_defect.defects.sourcegates.id).description
+                                        check_point_defect_sourcegate_id = check_point_defect.defects.sourcegates.id
+                                        if 'form[dpu_final_sourcegates]' in form and form['form[dpu_final_sourcegates]'] != [u'']:
+                                            sourcegate_id = int(form['form[dpu_final_sourcegates]'][0])
+                                            if check_point_defect_sourcegate_id == sourcegate_id:
+                                                check_point_defects.append(sourcegate)
+                                        else:
+                                            check_point_defects.append(sourcegate)
+                                        # check_point_defects.append(sourcegate)
+                                    except:
+                                        check_point_defect = ""
+                                else:
+                                    try:
+                                        part_defect_obj = PartDefects.objects.get(id=inspection_defect.partdefects.id)
+                                        sourcegate =SourceGates.objects.get(id=part_defect_obj.defects.sourcegates.id).description
+                                        part_defect_sourcegate_id = part_defect_obj.defects.sourcegates.id
+                                        if 'form[dpu_final_sourcegates]' in form and form['form[dpu_final_sourcegates]'] != [u'']:
+                                            sourcegate_id = int(form['form[dpu_final_sourcegates]'][0])
+                                            if part_defect_sourcegate_id == sourcegate_id:
+                                                part_defect.append(sourcegate)
+                                        else:
+                                            part_defect.append(sourcegate)
+                                    except:
+                                        part_defect_obj = ""
+                    tractor_count = dpu_obj.count()
+                    dpu = float("{0:.2f}".format(defect_final/float(tractor_count)))
+                    mark_dict={
+                        'name': "Average",
+                        'value': dpu,
+                        'xAxis': _date,
+                        'yAxis': dpu
+                        }
+                    #print mark_dict
+                    mark_data.append(mark_dict)
+            else:
+                dpu = 0
+            dpu_list.append(dpu)
+            sourcegates = check_point_defects + part_defect
+            d = {x:sourcegates.count(x) for x in sourcegates}
+            # import pdb;pdb.set_trace()
+            sourcegates_list.extend(sourcegates)
+            defects_data.append(d)
+
+        # import pdb;pdb.set_trace()
+        source_list=list(set(sourcegates_list))
+
+        chart_defects = []
+        for source in source_list:
+            defects_list =[]
+            for defects in defects_data:
+                if source in defects:
+                    defects_list.append(defects[source])
+                else:
+                    defects_list.append(0)
+            chart_defects.append(defects_list) 
+        #print chart_defects 
+        data = {
+        'date_list': date_list,
+        'dpu': dpu_list,
+        'mark_data': mark_data,
+        'source_list': source_list,
+        'chart_defects': chart_defects
+        }
+        return data
+
+
+
+    def removekey(self, dictionary, key):
+        remove = dict(dictionary)
+        del remove[key]
+        return remove
+
+    def post(self, request, *args, **kwargs):
+        #print request.POST
+        super(DpuFinalView, self).__init__()
+        user = get_user_dict(request)
+        form = dict(request.POST)
+        # form = {key: value for key, value in dict(request.POST).items() if value != [u'']}
+        
+        from_date = self.common.parse_date(form['from_date'][0])
+        to_date = self.common.parse_date(form['to_date'][0]) 
+        date_list = self.common.get_date_list(from_date, to_date)
+        
+        vin_obj = self.common.get_vin_details(user)
+        date_from = parse(request.POST.get('from_date')).strftime('%Y-%m-%d %H:%M:%S')
+        date_to = parse(request.POST.get('to_date')).strftime('%Y-%m-%d %H:%M:%S')
+        vin = vin_obj.extra(where=["timestamp >= '%s' and timestamp <= '%s'"%(date_from,date_to)])
+        # form = [self.removekey(form, key) for key in ['from_date', 'to_date']]
+        data = self.dpu_final_chart_data(request, user, vin, form, date_list)
+        #print data
+
+        return JsonResponse(data, safe=False)
+
+class DpuOverallView(View):
+    common = Common()
+    
+    def __init__(self):
+        self.rft_ok = []
+        self.not_ok = []  
+        self.mark_data = []  
+        self.no_of_tractors = []
+
+    def dpu_overall_chart_data(self, request, user, vin, form, date_list):
+        dpu_list = [] 
+        mark_data = []  
+        defects_data = []
+        sourcegates_list = ['DPU']
+        for _date in date_list:
+            check_point_defects = []
+            part_defect = []
+            #import pdb;pdb.set_trace()
+            if form['form[dpu_overall_plants]'] != [u'']:
+               vin = vin.filter(stations__cells__plants=int(form['form[dpu_overall_plants]'][0]))
+            # else:
+            if 'form[dpu_overall_markets]' in form and form['form[dpu_overall_markets]'] != [u'']:
+                vin = vin.filter(model__market=int(form['form[dpu_overall_markets]'][0]))
+            if form['form[dpu_overall_shifts]'] != [u'']:
+                vin = vin.filter(shift=int(form['form[dpu_overall_shifts]'][0]))
+            if 'form[dpu_overall_base_models]' in form and form['form[dpu_overall_base_models]'] != [u'']:
+                vin = vin.filter(model__base_models=int(form['form[dpu_final_base_models]'][0]))
+            if 'form[dpu_overall_models]' in form and form['form[dpu_overall_models]'] != [u'']:
+                vin = vin.filter(model=int(form['form[dpu_overall_models]'][0]))
+            if 'form[dpu_overall_sourcegates]' in form and form['form[dpu_overall_sourcegates]'] != [u'']:
+                # import pdb;pdb.set_trace()
+                sourcegates = SourceGates.objects.get(id=int(form['form[dpu_overall_sourcegates]'][0]))
+                defects = Defects.objects.filter(sourcegates = sourcegates)
+                checkpoint_defects = CheckpointDefects.objects.filter(defects__in = defects)
+                partdefects = PartDefects.objects.filter(defects__in = defects)           
+                check_point_defect_list = []
+                for check_point_defect in checkpoint_defects:
+                    check_point_defect_list.append(check_point_defect.checkpoints.id)
+                #import pdb;pdb.set_trace()
+                inspection_defect_vin = InspectionDefects.objects.filter(checkpoints__in=check_point_defect_list).values_list('vin',flat=True)    
+                inspection_defect_vin_partdefect = InspectionDefects.objects.filter(partdefects__in = partdefects).values_list('vin',flat=True)
+                vin_list = list(chain(inspection_defect_vin, inspection_defect_vin_partdefect))
+                vin = vin.filter(id__in=vin_list)  
+            my_date = datetime.strptime(_date, '%d-%m-%Y')
+            dpu_obj =  vin.filter(timestamp__contains=datetime.strftime(my_date, '%Y-%m-%d'))
+            # check_point_defects = []
+            # part_defect = []
+            if len(dpu_obj) != 0:
+                    defect_overall = 0
+                    for dpu in dpu_obj:
+                        inspection_defects =  InspectionDefects.objects.filter(vin=dpu)
+                        defect_overall  += inspection_defects.count()
+                        if len(inspection_defects) !=0:
+                            for inspection_defect in inspection_defects:
+                                if inspection_defect.checkpoints != None:
+                                    try:
+                                        check_point_defect = CheckpointDefects.objects.get(
+                                            checkpoints=inspection_defect.checkpoints)
+                                        sourcegate =SourceGates.objects.get(id=check_point_defect.defects.sourcegates.id).description
+                                        check_point_defect_sourcegate_id = check_point_defect.defects.sourcegates.id
+                                        if 'form[dpu_overall_sourcegates]' in form and form['form[dpu_overall_sourcegates]'] != [u'']:
+                                            sourcegate_id = int(form['form[dpu_overall_sourcegates]'][0])
+                                            if check_point_defect_sourcegate_id == sourcegate_id:
+                                                check_point_defects.append(sourcegate)
+                                        else:
+                                            check_point_defects.append(sourcegate)
+                                        # check_point_defects.append(sourcegate)
+                                    except:
+                                        check_point_defect = ""
+                                else:
+                                    try:
+                                        part_defect_obj = PartDefects.objects.get(id=inspection_defect.partdefects.id)
+                                        sourcegate =SourceGates.objects.get(id=part_defect_obj.defects.sourcegates.id).description
+                                        part_defect_sourcegate_id = part_defect_obj.defects.sourcegates.id
+                                        if 'form[dpu_overall_sourcegates]' in form and form['form[dpu_overall_sourcegates]'] != [u'']:
+                                            sourcegate_id = int(form['form[dpu_overall_sourcegates]'][0])
+                                            if part_defect_sourcegate_id == sourcegate_id:
+                                                part_defect.append(sourcegate)
+                                        else:
+                                            part_defect.append(sourcegate)
+                                    except:
+                                        part_defect_obj = ""
+                    tractor_count = dpu_obj.count()
+                    dpu = float("{0:.2f}".format(defect_overall/float(tractor_count)))
+                    mark_dict={
+                        'name': "Average",
+                        'value': dpu,
+                        'xAxis': _date,
+                        'yAxis': dpu
+                        }
+                    mark_data.append(mark_dict)
+            else:
+                dpu = 0
+            dpu_list.append(dpu)
+            sourcegates = check_point_defects + part_defect
+            d = {x:sourcegates.count(x) for x in sourcegates}
+            # import pdb;pdb.set_trace()
+            sourcegates_list.extend(sourcegates)
+            defects_data.append(d)
+
+        # import pdb;pdb.set_trace()
+        source_list=list(set(sourcegates_list))
+
+        chart_defects = []
+        for source in source_list:
+            defects_list =[]
+            for defects in defects_data:
+                if source in defects:
+                    defects_list.append(defects[source])
+                else:
+                    defects_list.append(0)
+            chart_defects.append(defects_list) 
+        #print chart_defects 
+        data = {
+        'date_list': date_list,
+        'dpu': dpu_list,
+        'mark_data': mark_data,
+        'source_list': source_list,
+        'chart_defects': chart_defects
+        }
+        return data
+
+
+
+    def removekey(self, dictionary, key):
+        remove = dict(dictionary)
+        del remove[key]
+        return remove
+
+    def post(self, request, *args, **kwargs):
+        print request.POST
+        super(DpuOverallView, self).__init__()
+        user = get_user_dict(request)
+        form = dict(request.POST)
+        # form = {key: value for key, value in dict(request.POST).items() if value != [u'']}
+        
+        from_date = self.common.parse_date(form['from_date'][0])
+        to_date = self.common.parse_date(form['to_date'][0]) 
+        date_list = self.common.get_date_list(from_date, to_date)
+        
+        vin_obj = self.common.get_vin_details(user)
+        date_from = parse(request.POST.get('from_date')).strftime('%Y-%m-%d %H:%M:%S')
+        date_to = parse(request.POST.get('to_date')).strftime('%Y-%m-%d %H:%M:%S')
+        vin = vin_obj.extra(where=["timestamp >= '%s' and timestamp <= '%s'"%(date_from,date_to)])
+        # form = [self.removekey(form, key) for key in ['from_date', 'to_date']]
+        data = self.dpu_overall_chart_data(request, user, vin, form, date_list)
+        #print data
+
         return JsonResponse(data, safe=False)
 
 

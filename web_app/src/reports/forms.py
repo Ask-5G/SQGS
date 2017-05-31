@@ -144,6 +144,9 @@ def get_station_list(plant='', market='', base='', model=''):
 		else:
 			return Stations.objects.all()
 
+def get_sourcegate_list():
+    return SourceGates.objects.all()
+
 class PlantChoiceField(ModelChoiceField):
 
     def label_from_instance(self, obj):
@@ -170,6 +173,11 @@ class ModelChoiceField(ModelChoiceField):
         return "%s" % obj.description
 
 class StationChoiceField(ModelChoiceField):
+
+    def label_from_instance(self, obj):
+        return "%s" % obj.description
+
+class SourceGatesChoiceField(ModelChoiceField):
 
     def label_from_instance(self, obj):
         return "%s" % obj.description
@@ -617,6 +625,458 @@ class RftOverallFilterForm(forms.Form):
 		try:
 			if len(initial) > 2:
 				for field in ['rft_overall_markets', 'rft_overall_shifts', 'rft_overall_base_models', 'rft_overall_models']:
+					self.fields[field].initial = initial[field]
+		except KeyError:
+			pass
+		except ValueError:
+			pass						
+
+class DpuRolldownFilterForm(forms.Form):
+
+	dpu_rolldown_plants = PlantChoiceField(
+		queryset=get_plant_list(),
+		empty_label="All"
+	)
+	dpu_rolldown_markets = MarketChoiceField(
+		queryset=Market.objects.none(),
+		empty_label="All"
+	)
+	dpu_rolldown_shifts = ShiftChoiceField(
+		queryset=Shifts.objects.none(),
+		empty_label="All"
+	)
+	dpu_rolldown_base_models = BaseModelChoiceField(
+		queryset=BaseModels.objects.none(),
+		empty_label="All"
+	)
+	dpu_rolldown_models = ModelChoiceField(
+		queryset=Models.objects.none(),
+		empty_label="All"
+	)
+	dpu_rolldown_sourcegates = SourceGatesChoiceField(
+		queryset=SourceGates.objects.none(),
+		empty_label="All"
+	)
+
+	def __init__(self, *args, **kwargs):
+		user = kwargs.pop('user', None)
+		initial = kwargs.get('initial', {})
+		super(DpuRolldownFilterForm, self).__init__(*args)
+		self.fields['dpu_rolldown_plants'].widget.attrs = {'id': 'id_dpu_rolldown_plants', 'class': 'form-control','help_texts':'Choose Plants', 'data-live-search': "true"}
+		self.fields['dpu_rolldown_markets'].widget.attrs = {'id': 'id_dpu_rolldown_markets', 'class': 'form-control','help_texts':'Choose Markets', 'data-live-search': "true"}
+		self.fields['dpu_rolldown_shifts'].widget.attrs = {'id': 'id_dpu_rolldown_shifts', 'class': 'form-control','help_texts':'Choose Shifts', 'data-live-search': "true"}
+		self.fields['dpu_rolldown_base_models'].widget.attrs = {'id': 'id_dpu_rolldown_base_models', 'class': 'form-control','help_texts':'Choose Base Models', 'data-live-search': "true"}
+		self.fields['dpu_rolldown_models'].widget.attrs = {'id': 'id_dpu_rolldown_models', 'class': 'form-control','help_texts':'Choose Models', 'data-live-search': "true"}
+		self.fields['dpu_rolldown_sourcegates'].widget.attrs = {'id': 'id_dpu_rolldown_sourcegates', 'class': 'form-control','help_texts':'Choose SourceGates', 'data-live-search': "true"}
+		self.form_initialize(user, initial)
+
+	def form_initialize(self, user, initial):
+		if user["plant"] != '':
+			self.initiate_form_plant(user, initial)
+		else:
+			self.initiate_form_tafe(initial)
+		self.set_initial_value(user, initial)
+
+	def initiate_form_plant(self, user, initial):
+		try:
+			plant = Plants.objects.get(
+				id=user['plant']
+			)
+			if initial != {}:
+				self.fields['dpu_rolldown_plants'].queryset = get_plant_list(plant.id)
+				self.fields['dpu_rolldown_plants'].initial = plant.id
+				self.fields['dpu_rolldown_plants'].disabled = True
+				self.fields['dpu_rolldown_markets'].queryset = get_market_list(plant.id, initial['dpu_rolldown_base_models'], initial['dpu_rolldown_models'], initial['dpu_rolldown_sourcegates'])
+				self.fields['dpu_rolldown_shifts'].queryset = get_shift_list(plant.id)
+				self.fields['dpu_rolldown_base_models'].queryset = get_base_list(plant.id, initial['dpu_rolldown_markets'], initial['dpu_rolldown_models'], initial['dpu_rolldown_sourcegates'])
+				self.fields['dpu_rolldown_models'].queryset = get_model_list(plant.id, initial['dpu_rolldown_markets'], initial['dpu_rolldown_base_models'], initial['dpu_rolldown_sourcegates'])
+				self.fields['dpu_rolldown_sourcegates'].queryset = get_sourcegate_list()
+			else:
+				self.initiate_plant(plant.id)
+		except KeyError:
+			pass
+		except ValueError:
+			pass
+		except Plants.DoesNotExist:
+			pass
+
+	def initiate_plant(self, plant):
+		try:
+			self.fields['dpu_rolldown_plants'].queryset = get_plant_list(plant)
+			self.fields['dpu_rolldown_plants'].initial = plant
+			self.fields['dpu_rolldown_plants'].disabled = True
+			self.fields['dpu_rolldown_markets'].queryset = get_market_list(plant)
+			self.fields['dpu_rolldown_shifts'].queryset = get_shift_list(plant)
+			self.fields['dpu_rolldown_base_models'].queryset = get_base_list(plant)
+			self.fields['dpu_rolldown_models'].queryset = get_model_list(plant)
+			self.fields['dpu_rolldown_sourcegates'].queryset = get_sourcegate_list()
+		except KeyError:
+			pass
+		except ValueError:
+			pass
+
+	def initiate_form_tafe(self, initial):
+		try:
+			if initial != {}:
+				# import pdb;pdb.set_trace()
+				self.fields['dpu_rolldown_plants'].queryset = get_plant_list()
+				self.fields['dpu_rolldown_plants'].initial = initial['dpu_rolldown_plants']
+                
+				if initial['dpu_rolldown_plants'] == '':
+					self.fields['dpu_rolldown_markets'].disabled = True
+					self.fields['dpu_rolldown_shifts'].disabled = True
+					self.fields['dpu_rolldown_base_models'].disabled = True
+					self.fields['dpu_rolldown_models'].disabled = True
+					self.fields['dpu_rolldown_sourcegates'].disabled = True
+				else:
+					if len(initial) > 2:
+						self.fields['dpu_rolldown_markets'].queryset = get_market_list(initial['dpu_rolldown_plants'], initial['dpu_rolldown_base_models'], initial['dpu_rolldown_models'], initial['dpu_rolldown_sourcegates'])
+						self.fields['dpu_rolldown_shifts'].queryset = get_shift_list(initial['dpu_rolldown_plants'])
+						self.fields['dpu_rolldown_base_models'].queryset = get_base_list(initial['dpu_rolldown_plants'], initial['dpu_rolldown_markets'], initial['dpu_rolldown_models'], initial['dpu_rolldown_sourcegates'])
+						self.fields['dpu_rolldown_models'].queryset = get_model_list(initial['dpu_rolldown_plants'], initial['dpu_rolldown_markets'], initial['dpu_rolldown_base_models'], initial['dpu_rolldown_sourcegates'])
+						self.fields['dpu_rolldown_sourcegates'].queryset = get_sourcegate_list()
+					else:
+						self.fields['dpu_rolldown_markets'].enabled = True
+						self.fields['dpu_rolldown_markets'].queryset = get_market_list(initial['dpu_rolldown_plants'])
+						self.fields['dpu_rolldown_shifts'].enabled = True
+						self.fields['dpu_rolldown_shifts'].queryset = get_shift_list(initial['dpu_rolldown_plants'])
+						self.fields['dpu_rolldown_base_models'].enabled = True
+						self.fields['dpu_rolldown_base_models'].queryset = get_base_list(initial['dpu_rolldown_plants'])
+						self.fields['dpu_rolldown_models'].enabled = True
+						self.fields['dpu_rolldown_models'].queryset = get_model_list(initial['dpu_rolldown_plants'])
+						self.fields['dpu_rolldown_sourcegates'].enabled = True
+						self.fields['dpu_rolldown_sourcegates'].queryset = get_sourcegate_list()
+			else:
+				self.initiate_tafe()
+		except KeyError:
+			pass
+		except ValueError:
+			pass
+	def initiate_tafe(self):
+		try:
+			self.fields['dpu_rolldown_plants'].queryset = get_plant_list()
+			self.fields['dpu_rolldown_markets'].queryset = get_market_list()
+			self.fields['dpu_rolldown_markets'].disabled = True
+			self.fields['dpu_rolldown_shifts'].queryset = get_shift_list()
+			self.fields['dpu_rolldown_shifts'].disabled = True
+			self.fields['dpu_rolldown_base_models'].queryset = get_base_list()
+			self.fields['dpu_rolldown_base_models'].disabled = True
+			self.fields['dpu_rolldown_models'].queryset = get_model_list()
+			self.fields['dpu_rolldown_models'].disabled = True
+			self.fields['dpu_rolldown_sourcegates'].queryset = get_sourcegate_list()
+			self.fields['dpu_rolldown_sourcegates'].disabled = True
+		except KeyError:
+			pass
+		except ValueError:
+			pass
+
+	def set_initial_value(self, user, initial):
+		try:
+			for field in ['dpu_rolldown_markets', 'dpu_rolldown_shifts', 'dpu_rolldown_base_models', 'dpu_rolldown_models', 'dpu_rolldown_sourcegates']:
+				self.fields[field].initial = initial[field]
+		except KeyError:
+			pass
+		except ValueError:
+			pass			
+
+
+class DpuFinalFilterForm(forms.Form):
+
+	dpu_final_plants = PlantChoiceField(
+		queryset=get_plant_list(),
+		empty_label="All"
+	)
+	dpu_final_markets = MarketChoiceField(
+		queryset=Market.objects.none(),
+		empty_label="All"
+	)
+	dpu_final_shifts = ShiftChoiceField(
+		queryset=Shifts.objects.none(),
+		empty_label="All"
+	)
+	dpu_final_base_models = BaseModelChoiceField(
+		queryset=BaseModels.objects.none(),
+		empty_label="All"
+	)
+	dpu_final_models = ModelChoiceField(
+		queryset=Models.objects.none(),
+		empty_label="All"
+	)
+	dpu_final_sourcegates = SourceGatesChoiceField(
+		queryset=SourceGates.objects.none(),
+		empty_label="All"
+	)
+
+	def __init__(self, *args, **kwargs):
+		user = kwargs.pop('user', None)
+		initial = kwargs.get('initial', {})
+		super(DpuFinalFilterForm, self).__init__(*args)
+		self.fields['dpu_final_plants'].widget.attrs = {'id': 'id_dpu_final_plants', 'class': 'form-control','help_texts':'Choose Plants', 'data-live-search': "true"}
+		self.fields['dpu_final_markets'].widget.attrs = {'id': 'id_dpu_final_markets', 'class': 'form-control','help_texts':'Choose Markets', 'data-live-search': "true"}
+		self.fields['dpu_final_shifts'].widget.attrs = {'id': 'id_dpu_final_shifts', 'class': 'form-control','help_texts':'Choose Shifts', 'data-live-search': "true"}
+		self.fields['dpu_final_base_models'].widget.attrs = {'id': 'id_dpu_final_base_models', 'class': 'form-control','help_texts':'Choose Base Models', 'data-live-search': "true"}
+		self.fields['dpu_final_models'].widget.attrs = {'id': 'id_dpu_final_models', 'class': 'form-control','help_texts':'Choose Models', 'data-live-search': "true"}
+		self.fields['dpu_final_sourcegates'].widget.attrs = {'id': 'id_dpu_final_sourcegates', 'class': 'form-control','help_texts':'Choose SourceGates', 'data-live-search': "true"}
+		self.form_initialize(user, initial)
+
+	def form_initialize(self, user, initial):
+		if user["plant"] != '':
+			self.initiate_form_plant(user, initial)
+		else:
+			self.initiate_form_tafe(initial)
+		self.set_initial_value(user, initial)
+
+	def initiate_form_plant(self, user, initial):
+		try:
+			plant = Plants.objects.get(
+				id=user['plant']
+			)
+			if initial != {}:
+				self.fields['dpu_final_plants'].queryset = get_plant_list(plant.id)
+				self.fields['dpu_final_plants'].initial = plant.id
+				self.fields['dpu_final_plants'].disabled = True
+				self.fields['dpu_final_markets'].queryset = get_market_list(plant.id, initial['dpu_final_base_models'], initial['dpu_final_models'])
+				self.fields['dpu_final_shifts'].queryset = get_shift_list(plant.id)
+				self.fields['dpu_final_base_models'].queryset = get_base_list(plant.id, initial['dpu_final_markets'], initial['dpu_final_models'])
+				self.fields['dpu_final_models'].queryset = get_model_list(plant.id, initial['dpu_final_markets'], initial['dpu_final_base_models'])
+				self.fields['dpu_final_sourcegates'].queryset = get_sourcegate_list()
+				#self.fields['dpu_final_sourcegates'].disabled = True
+			else:
+				self.initiate_plant(plant.id)
+		except KeyError:
+			pass
+		except ValueError:
+			pass
+		except Plants.DoesNotExist:
+			pass
+
+	def initiate_plant(self, plant):
+		try:
+			self.fields['dpu_final_plants'].queryset = get_plant_list(plant)
+			self.fields['dpu_final_plants'].initial = plant
+			self.fields['dpu_final_plants'].disabled = True
+			self.fields['dpu_final_markets'].queryset = get_market_list(plant)
+			self.fields['dpu_final_shifts'].queryset = get_shift_list(plant)
+			self.fields['dpu_final_base_models'].queryset = get_base_list(plant)
+			self.fields['dpu_final_models'].queryset = get_model_list(plant)
+			self.fields['dpu_final_sourcegates'].queryset = get_sourcegate_list()
+			#self.fields['dpu_final_sourcegates'].disabled = True
+		except KeyError:
+			pass
+		except ValueError:
+			pass
+
+	def initiate_form_tafe(self, initial):
+		try:
+			if initial != {}:
+				self.fields['dpu_final_plants'].queryset = get_plant_list()
+				self.fields['dpu_final_plants'].initial = initial['dpu_final_plants']
+
+				if initial['dpu_final_plants'] == '':
+					self.fields['dpu_final_markets'].disabled = True
+					self.fields['dpu_final_shifts'].disabled = True
+					self.fields['dpu_final_base_models'].disabled = True
+					self.fields['dpu_final_models'].disabled = True
+					self.fields['dpu_final_sourcegates'].disabled = True
+				else:
+					if len(initial) > 2:
+						self.fields['dpu_final_markets'].queryset = get_market_list(initial['dpu_final_plants'], initial['dpu_final_base_models'], initial['dpu_final_models'])
+						self.fields['dpu_final_shifts'].queryset = get_shift_list(initial['dpu_final_plants'])
+						self.fields['dpu_final_base_models'].queryset = get_base_list(initial['dpu_final_plants'], initial['dpu_final_markets'], initial['dpu_final_models'])
+						self.fields['dpu_final_models'].queryset = get_model_list(initial['dpu_final_plants'], initial['dpu_final_markets'], initial['dpu_final_base_models'])
+						self.fields['dpu_final_sourcegates'].queryset = get_sourcegate_list()
+						self.fields['dpu_final_sourcegates'].queryset = get_sourcegate_list()
+					else:
+						self.fields['dpu_final_markets'].enabled = True
+						self.fields['dpu_final_markets'].queryset = get_market_list(initial['dpu_final_plants'])
+						self.fields['dpu_final_shifts'].enabled = True
+						self.fields['dpu_final_shifts'].queryset = get_shift_list(initial['dpu_final_plants'])
+						self.fields['dpu_final_base_models'].enabled = True
+						self.fields['dpu_final_base_models'].queryset = get_base_list(initial['dpu_final_plants'])
+						self.fields['dpu_final_models'].enabled = True
+						self.fields['dpu_final_models'].queryset = get_model_list(initial['dpu_final_plants'])
+						self.fields['dpu_final_sourcegates'].queryset = get_sourcegate_list()
+						self.fields['dpu_final_sourcegates'].enabled = True
+			else:
+				self.initiate_tafe()
+		except KeyError:
+			pass
+		except ValueError:
+			pass
+	def initiate_tafe(self):
+		try:
+			self.fields['dpu_final_plants'].queryset = get_plant_list()
+			self.fields['dpu_final_markets'].queryset = get_market_list()
+			self.fields['dpu_final_markets'].disabled = True
+			self.fields['dpu_final_shifts'].queryset = get_shift_list()
+			self.fields['dpu_final_shifts'].disabled = True
+			self.fields['dpu_final_base_models'].queryset = get_base_list()
+			self.fields['dpu_final_base_models'].disabled = True
+			self.fields['dpu_final_models'].queryset = get_model_list()
+			self.fields['dpu_final_models'].disabled = True
+			self.fields['dpu_final_sourcegates'].queryset = get_sourcegate_list()
+			self.fields['dpu_final_sourcegates'].disabled = True
+		except KeyError:
+			pass
+		except ValueError:
+			pass
+
+	def set_initial_value(self, user, initial):
+		try:
+			if len(initial) > 2:
+				for field in ['dpu_final_markets', 'dpu_final_shifts', 'dpu_final_base_models', 'dpu_final_models','dpu_final_sourcegates']:
+					self.fields[field].initial = initial[field]
+		except KeyError:
+			pass
+		except ValueError:
+			pass			
+
+class DpuOverallFilterForm(forms.Form):
+
+	dpu_overall_plants = PlantChoiceField(
+		queryset=get_plant_list(),
+		empty_label="All"
+	)
+	dpu_overall_markets = MarketChoiceField(
+		queryset=Market.objects.none(),
+		empty_label="All"
+	)
+	dpu_overall_shifts = ShiftChoiceField(
+		queryset=Shifts.objects.none(),
+		empty_label="All"
+	)
+	dpu_overall_base_models = BaseModelChoiceField(
+		queryset=BaseModels.objects.none(),
+		empty_label="All"
+	)
+	dpu_overall_models = ModelChoiceField(
+		queryset=Models.objects.none(),
+		empty_label="All"
+	)
+	dpu_overall_sourcegates = SourceGatesChoiceField(
+		queryset=SourceGates.objects.none(),
+		empty_label="All"
+	)
+
+	def __init__(self, *args, **kwargs):
+		user = kwargs.pop('user', None)
+		initial = kwargs.get('initial', {})
+		super(DpuOverallFilterForm, self).__init__(*args)
+		self.fields['dpu_overall_plants'].widget.attrs = {'id': 'id_dpu_overall_plants', 'class': 'form-control','help_texts':'Choose Plants', 'data-live-search': "true"}
+		self.fields['dpu_overall_markets'].widget.attrs = {'id': 'id_dpu_overall_markets', 'class': 'form-control','help_texts':'Choose Markets', 'data-live-search': "true"}
+		self.fields['dpu_overall_shifts'].widget.attrs = {'id': 'id_dpu_overall_shifts', 'class': 'form-control','help_texts':'Choose Shifts', 'data-live-search': "true"}
+		self.fields['dpu_overall_base_models'].widget.attrs = {'id': 'id_dpu_ovarall_base_models', 'class': 'form-control','help_texts':'Choose Base Models', 'data-live-search': "true"}
+		self.fields['dpu_overall_models'].widget.attrs = {'id': 'id_dpu_overall_models', 'class': 'form-control','help_texts':'Choose Models', 'data-live-search': "true"}
+		self.fields['dpu_overall_sourcegates'].widget.attrs = {'id': 'id_dpu_overall_sourcegates', 'class': 'form-control','help_texts':'Choose SourceGates', 'data-live-search': "true"}
+		self.form_initialize(user, initial)
+
+	def form_initialize(self, user, initial):
+		if user["plant"] != '':
+			self.initiate_form_plant(user, initial)
+		else:
+			self.initiate_form_tafe(initial)
+		self.set_initial_value(user, initial)
+
+	def initiate_form_plant(self, user, initial):
+		try:
+			plant = Plants.objects.get(
+				id=user['plant']
+			)
+			if initial != {}:
+				self.fields['dpu_overall_plants'].queryset = get_plant_list(plant.id)
+				self.fields['dpu_overall_plants'].initial = plant.id
+				self.fields['dpu_overall_plants'].disabled = True
+				self.fields['dpu_overall_markets'].queryset = get_market_list(plant.id, initial['dpu_overall_base_models'], initial['dpu_overall_models'])
+				self.fields['dpu_overall_shifts'].queryset = get_shift_list(plant.id)
+				self.fields['dpu_overall_base_models'].queryset = get_base_list(plant.id, initial['dpu_overall_markets'], initial['dpu_overall_models'])
+				self.fields['dpu_overall_models'].queryset = get_model_list(plant.id, initial['dpu_overall_markets'], initial['dpu_overall_base_models'])
+				self.fields['dpu_overall_sourcegates'].queryset = get_sourcegate_list()
+				self.fields['dpu_overall_sourcegates'].disabled = True
+			else:
+				self.initiate_plant(plant.id)
+		except KeyError:
+			pass
+		except ValueError:
+			pass
+		except Plants.DoesNotExist:
+			pass
+
+	def initiate_plant(self, plant):
+		try:
+			self.fields['dpu_overall_plants'].queryset = get_plant_list(plant)
+			self.fields['dpu_overall_plants'].initial = plant
+			self.fields['dpu_overall_plants'].disabled = True
+			self.fields['dpu_overall_markets'].queryset = get_market_list(plant)
+			self.fields['dpu_overall_shifts'].queryset = get_shift_list(plant)
+			self.fields['dpu_overall_base_models'].queryset = get_base_list(plant)
+			self.fields['dpu_overall_models'].queryset = get_model_list(plant)
+			self.fields['dpu_overall_sourcegates'].queryset = get_sourcegate_list()
+			self.fields['dpu_overall_sourcegates'].disabled = True
+		except KeyError:
+			pass
+		except ValueError:
+			pass
+
+	def initiate_form_tafe(self, initial):
+		try:
+			if initial != {}:
+				# import pdb;pdb.set_trace()
+				self.fields['dpu_overall_plants'].queryset = get_plant_list()
+				self.fields['dpu_overall_plants'].initial = initial['dpu_overall_plants']
+
+				if initial['dpu_overall_plants'] == '':
+					self.fields['dpu_overall_markets'].disabled = True
+					self.fields['dpu_overall_shifts'].disabled = True
+					self.fields['dpu_overall_base_models'].disabled = True
+					self.fields['dpu_overall_models'].disabled = True
+					self.fields['dpu_overall_sourcegates'].disabled = True
+				else:
+					if len(initial) > 2:
+						self.fields['dpu_overall_markets'].queryset = get_market_list(initial['dpu_overall_plants'], initial['dpu_overall_base_models'], initial['dpu_overall_models'])
+						self.fields['dpu_overall_shifts'].queryset = get_shift_list(initial['dpu_overall_plants'])
+						self.fields['dpu_overall_base_models'].queryset = get_base_list(initial['dpu_overall_plants'], initial['dpu_overall_markets'], initial['dpu_overall_models'])
+						self.fields['dpu_overall_models'].queryset = get_model_list(initial['dpu_overall_plants'], initial['dpu_overall_markets'], initial['dpu_overall_base_models'])
+						self.fields['dpu_overall_sourcegates'].queryset = get_sourcegate_list()
+						#self.fields['dpu_overall_sourcegates'].disabled = True
+					else:
+						self.fields['dpu_overall_markets'].enabled = True
+						self.fields['dpu_overall_markets'].queryset = get_market_list(initial['dpu_overall_plants'])
+						self.fields['dpu_overall_shifts'].enabled = True
+						self.fields['dpu_overall_shifts'].queryset = get_shift_list(initial['dpu_overall_plants'])
+						self.fields['dpu_overall_base_models'].enabled = True
+						self.fields['dpu_overall_base_models'].queryset = get_base_list(initial['dpu_overall_plants'])
+						self.fields['dpu_overall_models'].enabled = True
+						self.fields['dpu_overall_models'].queryset = get_model_list(initial['dpu_overall_plants'])
+						self.fields['dpu_overall_sourcegates'].queryset = get_sourcegate_list()
+						self.fields['dpu_overall_sourcegates'].enabled = True
+			else:
+				self.initiate_tafe()
+		except KeyError:
+			pass
+		except ValueError:
+			pass
+	def initiate_tafe(self):
+		try:
+			self.fields['dpu_overall_plants'].queryset = get_plant_list()
+			self.fields['dpu_overall_markets'].queryset = get_market_list()
+			self.fields['dpu_overall_markets'].disabled = True
+			self.fields['dpu_overall_shifts'].queryset = get_shift_list()
+			self.fields['dpu_overall_shifts'].disabled = True
+			self.fields['dpu_overall_base_models'].queryset = get_base_list()
+			self.fields['dpu_overall_base_models'].disabled = True
+			self.fields['dpu_overall_models'].queryset = get_model_list()
+			self.fields['dpu_overall_models'].disabled = True
+			self.fields['dpu_overall_sourcegates'].queryset = get_sourcegate_list()
+			self.fields['dpu_overall_sourcegates'].disabled = True
+		except KeyError:
+			pass
+		except ValueError:
+			pass
+
+	def set_initial_value(self, user, initial):
+		try:
+			if len(initial) > 2:
+				for field in ['dpu_overall_markets', 'dpu_overall_shifts', 'dpu_overall_base_models', 'dpu_overall_models','dpu_overall_sourcegates']:
 					self.fields[field].initial = initial[field]
 		except KeyError:
 			pass
