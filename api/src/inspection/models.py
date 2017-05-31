@@ -33,6 +33,7 @@ def update_filename_defectclosure(instance, filename):
 
 
 class VinDetails(models.Model):
+    plant = models.ForeignKey(Plants, on_delete=models.CASCADE)
     vin = models.CharField(max_length=45)
     model = models.ForeignKey(Models, on_delete=models.CASCADE)
     users = models.ForeignKey(Users, on_delete=models.CASCADE)
@@ -41,6 +42,7 @@ class VinDetails(models.Model):
     closed_time = models.DateTimeField(auto_now_add=False, null=True)
     last_modified_date = models.DateTimeField(auto_now=True, null=True)
     shift = models.ForeignKey(Shifts, on_delete=models.CASCADE)
+    vin_order = models.IntegerField()
     
     class Meta:
         verbose_name = "Vin Detail"

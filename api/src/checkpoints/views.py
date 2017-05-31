@@ -76,7 +76,7 @@ class RepairsView (APIView):
     def get(self, request, format=None):
         date = request.GET.get('last_modified_date')
         if date != '':
-            repairs = Repairs.objects.objects.filter(last_modified_date__gte=date)
+            repairs = Repairs.objects.filter(last_modified_date__gte=date)
         else:
             repairs = Repairs.objects.all()
         serializer = RepairsSerializer(repairs, many=True)

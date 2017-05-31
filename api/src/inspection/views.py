@@ -27,13 +27,15 @@ class VinDetailsView(APIView):
             )
         verification.save()
 
-    def vin_create(self, vin_num, models, users, stations, shifts):
+    def vin_create(self, vin_num, models, users, stations, shifts, plants, vin_order):
         vindetails = VinDetails(
             vin = vin_num, 
             model = models, 
             users = users,
             stations = stations,
-            shift = shifts
+            shift = shifts,
+            plant = plants,
+            vin_order = vin_order
          )
         vindetails.save()
         self.cmd_verification(vindetails, stations)
@@ -54,6 +56,8 @@ class VinDetailsView(APIView):
         users = Users.objects.get(id=request.data.get('users'))
         stations = Stations.objects.get(id=request.data.get('stations'))
         shifts = Shifts.objects.get(id=request.data.get('shift'))
+        plants = Plants.objects.get(id=request.data.get('plant'))
+        vin_order = request.data.get('vin_order')
         vin_obj = VinDetails.objects.filter(vin=vin_num)
         if stations.description != 'Final Inspection':
             if len(vin_obj) != 0:
@@ -67,7 +71,7 @@ class VinDetailsView(APIView):
                     else:
                         Verification.objects.filter(vin=vin.id, stations=vin.stations).update(defects_count = inspection_defects.count(),\
                             closure_count = defect_closure.count(),status='RFT NOT OK')
-                vindetails = self.vin_create(vin_num, models, users, stations, shifts)
+                vindetails = self.vin_create(vin_num, models, users, stations, shifts, plants, vin_order)
                 vin_list = vin_obj.values_list('id', flat=True)
                 tot_defects = InspectionDefects.objects.filter(vin__in=vin_list).count()
                 tot_closure = DefectClosure.objects.filter(inspection_defects__vin__in=vin_list).count()
@@ -82,7 +86,7 @@ class VinDetailsView(APIView):
                     status = rep_status
                     )
             else:
-                vindetails = self.vin_create(vin_num, models, users, stations, shifts)
+                vindetails = self.vin_create(vin_num, models, users, stations, shifts, plants, vin_order)
                 vin_status = VinStatus(
                     vin = vin_num,
                     tot_defects = 0,
@@ -96,7 +100,9 @@ class VinDetailsView(APIView):
             model = models, 
             users = users,
             stations = stations,
-            shift = shifts
+            shift = shifts,
+            plant = plants,
+            vin_order = vin_order
             )
             vindetails.save()
         serializer = VinDetailsSerializer(vindetails)
@@ -180,6 +186,11 @@ class InspectionDefectsView(APIView):
 			self.inspection_defects = InspectionDefects(vin=self.vin_obj, observations=self.observations, image_quadrant = self.image_quadrant,
 			checkpoints = self.checkpoints_obj, user = self.user_obj, created_time = self.created_time, updated_time = self.updated_time)
         self.inspection_defects.save()
+        import pdb;pdb.set_trace()
+        print self.vin
+        defects_count = InspectionDefects.objects.filter(vin=self.vin).count()
+        verication = Verification.objects.filter(vin=self.vin)
+        verication.update(defects_count=defects_count)
         serializer = InspectionDefectsSerializer(self.inspection_defects)
         return Response({'inspection_defects':serializer.data}, status=status.HTTP_201_CREATED)
 		

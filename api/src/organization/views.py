@@ -31,10 +31,20 @@ from django.http import HttpResponse
 
 
 class ObtainAuthToken(APIView):
+
     def _assign_values(self, request):
         self.usercode = self.request.data.get("usercode", None)
         self.password = self.request.data.get("password", None)
         self.station = self.request.data.get("station", None)
+
+    def calculate_new_expiration(self):
+        validity_duration = DEFAULT_KEY_VALIDITY_DURATION
+        self.key_expiry_date = timezone.now() + validity_duration
+        return self.key_expiry_date
+
+    def generate_key(self):
+        self.key = binascii.hexlify(os.urandom(20)).decode()
+        return self.key
 
     def post(self, request, *args, **kwargs):
         #import pdb;pdb.set_trace()
@@ -42,12 +52,16 @@ class ObtainAuthToken(APIView):
         self.log_id = 0
         if self.usercode is not None and self.password is not None:
             try:
-                self.user = Users.objects.get(user_code=self.usercode,\
+                self.user = Users.objects.filter(user_code=self.usercode,\
                         password=self.password)
-                if self.user.is_loggedin != True:
+                if self.user[0].key_expiry_date < timezone.now():
+                    key = self.generate_key()
+                    expiry_date = self.calculate_new_expiration()
+                    self.user.update(key=key, key_expiry_date=expiry_date)
+                if self.user[0].is_loggedin != True:
                     if self.station:
                         log = UserLog(
-                            user = self.user,
+                            user = self.user[0],
                             station = Stations.objects.get(id=self.station)
                             )
                         log.save()
@@ -55,7 +69,7 @@ class ObtainAuthToken(APIView):
                     # if self.usercode != 'E0':
                     #     Users.objects.filter(user_code=self.usercode).update(is_loggedin=True)
                     self.data = {
-                        'key': self.user.key,
+                        'key': self.user[0].key,
                         'log': self.log_id
                     }
                 
