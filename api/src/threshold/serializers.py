@@ -5,7 +5,7 @@ class ThresholdsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Thresholds
-        fields = ('name','no_of_occurances','duration','reset_upon_notification','inspection_point_defects_id')        
+        fields = "__all__"        
     
     def update(self, instance, validated_data):
         
@@ -21,7 +21,7 @@ class ThresholdHistorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ThresholdHistory
-        fields = ('timestamp','threshold_id')   
+        fields = "__all__"  
 
     def update(self, instance, validated_data):
         
@@ -34,7 +34,7 @@ class ThresholdNotificationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ThresholdNotifications
-        fields = ('role_id','user_id','threshold_id')                        
+        fields = "__all__"                        
 
     def update(self, instance, validated_data):
         

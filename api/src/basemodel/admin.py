@@ -12,7 +12,6 @@ from .models import (Parts,
 from checkpoints.models import Checkpoints, PartDefects
 from organization.models import ModelStations
 from modelclone import ClonableModelAdmin
-#from import_export import resources
 from import_export import resources, fields
 
 from import_export.widgets import *
@@ -86,8 +85,7 @@ class ModelPartsAdmin(ImportExportModelAdmin):
     resource_class = ModelPartsResource
 
     list_per_page = 10
-    # class Meta:
-    #      model = ModelParts
+
 admin.site.register(BaseModels)
 admin.site.register(Models, ModelAdmin)
 admin.site.register(Parts, PartAdmin)

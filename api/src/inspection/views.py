@@ -12,6 +12,7 @@ from inspection.serializers import InspectionDefectsSerializer, DefectClosureSer
 from checkpoints.models import *
 from reports.models import *
 from datetime import datetime, timedelta, time
+from reports.views import get_queryset
 
 class VinDetailsView(APIView):        
 
@@ -42,11 +43,7 @@ class VinDetailsView(APIView):
         return vindetails
 
     def get(self, request, format=None):
-        date = request.GET.get('last_modified_date')
-        if date != '':
-            vindetails = VinDetails.objects.filter(last_modified_date__gte=date)
-        else:
-            vindetails = VinDetails.objects.all()
+        vindetails = get_queryset(request, VinDetails)
         serializer = VinDetailsSerializer(vindetails, many=True)
         return Response({'vin_details': serializer.data})
 
@@ -133,6 +130,7 @@ class InspectionDefectsView(APIView):
             image=self.completed_image
             )
         self.image.save()
+
     def _get_vin_obj(self):
         self.vin_obj = VinDetails.objects.get(id=self.vin)
 
@@ -144,11 +142,13 @@ class InspectionDefectsView(APIView):
             self.image_1_obj = Images.objects.get(id=self.image.id)
         except Exception as e:
             self.image_1_obj = ''
+
     def _get_checkpoints_obj(self):
         try:
             self.checkpoints_obj = Checkpoints.objects.get(id=self.checkpoints)
         except Exception as e:
             self.checkpoints_obj = ''
+
     def _get_partdefects_obj(self):
         try:
             self.partdefects_obj = PartDefects.objects.get(id=self.partdefects)
@@ -156,16 +156,11 @@ class InspectionDefectsView(APIView):
             self.partdefects_obj = ''
 
     def get(self, request, format=None):
-        date = request.GET.get('last_modified_date')
-        if date != '':
-            inspectiondefects = InspectionDefects.objects.filter(last_modified_date__gte=date)
-        else:
-            inspectiondefects = InspectionDefects.objects.all()
+        inspectiondefects = get_queryset(request, InspectionDefects)
         serializer = InspectionDefectsSerializer(inspectiondefects, many=True)
         return Response({'inspection_defects': serializer.data})
 
     def post(self, request, format=None):
-        #import pdb;pdb.set_trace()
         self._assign_values(request)
         if "image_1" in request.data and self.image_1 != '':
             self._save_image()
@@ -186,8 +181,6 @@ class InspectionDefectsView(APIView):
 			self.inspection_defects = InspectionDefects(vin=self.vin_obj, observations=self.observations, image_quadrant = self.image_quadrant,
 			checkpoints = self.checkpoints_obj, user = self.user_obj, created_time = self.created_time, updated_time = self.updated_time)
         self.inspection_defects.save()
-        import pdb;pdb.set_trace()
-        print self.vin
         defects_count = InspectionDefects.objects.filter(vin=self.vin).count()
         verication = Verification.objects.filter(vin=self.vin)
         verication.update(defects_count=defects_count)
@@ -199,11 +192,7 @@ class DefectClosureView(APIView):
     authentication_classes = (SQGSTokenAuthentication,)
 
     def get(self, request, format=None):
-        date = request.GET.get('last_modified_date')
-        if date != '':
-            defectclosure = DefectClosure.objects.filter(last_modified_date__gte=date)
-        else:
-            defectclosure = DefectClosure.objects.all()
+        defectclosure = get_queryset(request, DefectClosure)
         serializer = DefectClosureSerializer(defectclosure, many=True)
         return Response({'defect_closure': serializer.data})
 
@@ -221,7 +210,6 @@ class ReportView(APIView):
     authentication_classes = (SQGSTokenAuthentication,)
 
     def post(self, request, format=None):
-        # import pdb;pdb.set_trace()
         try:
             vin_obj = VinDetails.objects.filter(vin=request.data.get('vin'))
             vin_list = vin_obj.exclude(stations=request.data.get('station')).values_list('id',flat=True)
@@ -247,12 +235,14 @@ class ReportView(APIView):
                 vin_list = vin_obj.values_list('id', flat=True)
                 tot_defects = InspectionDefects.objects.filter(vin__in=vin_list).count()
                 tot_closure = DefectClosure.objects.filter(inspection_defects__vin__in=vin_list).count()
-                print len(vin_obj)
+
+
                 if tot_defects == tot_closure:
                     if len(vin_obj) != request.data.get('station'):
                         rep_status = 'RFT NOT OK'
                 elif tot_defects != tot_closure:                                        
                     rep_status = 'RFT NOT OK'
+
                 vin_status = VinStatus.objects.filter(vin=request.data.get('vin')).update(
                     tot_defects = tot_defects, 
                     tot_closure = tot_closure,
@@ -262,11 +252,13 @@ class ReportView(APIView):
             tractors = VinStatus.objects.filter(last_modified_date__gte=datetime.combine(datetime.now().date(), time()))
             station_wise_defects = 0
             track_count = 0
+            
             for tracktore in tractors:
                 station_wise_defects += InspectionDefects.objects.filter(vin__vin=tracktore.vin).exclude(vin__stations__description='Final Inspection').count()
                 track_count += 1
             
             dpu_obj = DefectsPerUnit.objects.filter(date__gte=datetime.combine(datetime.now().date(), time()))
+            
             if len(dpu_obj) != 0:
                 dpu_obj.update(no_of_defects = station_wise_defects, no_of_tractors = track_count, dpu = float("{0:.2f}".format(station_wise_defects/float(track_count))))
             else:    

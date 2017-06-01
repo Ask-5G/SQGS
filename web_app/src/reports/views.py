@@ -110,6 +110,17 @@ class RftFilterView(View):
 class RftSearchView(View):
     common = Common()
   
+    def get_data_dict(self, info, date_list, rft_ok, not_ok, no_of_tractors, mark_data):
+        data_dict = {
+        'info': info + date_list[0] + ' to ' + date_list[len(date_list)-1],
+        'date_list': date_list,
+        'rft_ok': rft_ok,
+        'not_ok': not_ok,
+        'mark_data': mark_data,
+        'no_of_tractors': no_of_tractors
+        }
+        return data_dict
+
     def overall(self,user, vin, date_list):
         rft_ok = []
         not_ok = []  
@@ -117,7 +128,6 @@ class RftSearchView(View):
         mark_data = []         
         for _date in date_list:
             my_date = datetime.strptime(_date, '%d-%m-%Y')
-            # current_vin = vin.filter(timestamp__contains=parse(_date).strftime('%Y-%d-%m'))
             current_vin = vin.filter(timestamp__contains=datetime.strftime(my_date, '%Y-%m-%d'))
 
             overall_obj = FinalRFT.objects.filter(vin__in=set(current_vin))
@@ -139,14 +149,8 @@ class RftSearchView(View):
                     'yAxis': overall_obj.count()
                 }
                 mark_data.append(percentage_dict)
-        data = {
-        'info': 'Overall RFT '+ date_list[0] + ' to ' + date_list[len(date_list)-1],
-        'date_list': date_list,
-        'rft_ok': rft_ok,
-        'not_ok': not_ok,
-        'mark_data': mark_data,
-        'no_of_tractors': no_of_tractors
-        }
+        data = self.get_data_dict('Overall RFT ', date_list, rft_ok, not_ok, no_of_tractors, mark_data)
+        print data
         return data
 
     def final(self, user, vin, date_list):
@@ -156,7 +160,6 @@ class RftSearchView(View):
         mark_data = []    
         for _date in date_list:
             my_date = datetime.strptime(_date, '%d-%m-%Y')
-            # current_vin = vin.filter(timestamp__contains=parse(_date).strftime('%Y-%d-%m'))
             current_vin = vin.filter(timestamp__contains=datetime.strftime(my_date, '%Y-%m-%d'))
             final_obj = FinalRFT.objects.filter(vin__in=set(current_vin))
 
@@ -177,14 +180,8 @@ class RftSearchView(View):
                     'yAxis': final_obj.count()
                 }
                 mark_data.append(percentage_dict)
-        data = {
-        'info': 'Final RFT '+ date_list[0] + ' to ' + date_list[len(date_list)-1],
-        'date_list': date_list,
-        'rft_ok': rft_ok,
-        'not_ok': not_ok,
-        'no_of_tractors': no_of_tractors,
-        'mark_data': mark_data
-        }
+        data = self.get_data_dict('Final RFT ', date_list, rft_ok, not_ok, no_of_tractors, mark_data)
+        print data
         return data
 
     def rolldown(self, user, vin, date_list):
@@ -215,15 +212,8 @@ class RftSearchView(View):
                     'yAxis': vin_status_obj.count()
                 }
                 mark_data.append(percentage_dict)
-        data = {
-        'info': 'Rolldown RFT '+ date_list[0] + ' to ' + date_list[len(date_list)-1],
-        'date_list': date_list,
-        'rft_ok': rft_ok,
-        'not_ok': not_ok,
-        'no_of_tractors':no_of_tractors,
-        'mark_data': mark_data
-        }
-
+        data = self.get_data_dict('Rolldown RFT ', date_list, rft_ok, not_ok, no_of_tractors, mark_data)
+        print data
         return data
 
     def post(self, request, *args, **kwargs):
@@ -233,9 +223,9 @@ class RftSearchView(View):
         
         date_list = self.common.get_date_list(from_date, to_date)
         vin_obj = self.common.get_vin_details(user)
-        date_from = parse(request.POST.get('from_date')).strftime('%Y-%m-%d %H:%M:%S')
-        date_to = parse(request.POST.get('to_date')).strftime('%Y-%m-%d %H:%M:%S')
-        print date_from + date_to
+        date_from = parse(request.POST.get('from_date')).strftime('%Y-%d-%m %H:%M:%S')
+        date_to = parse(request.POST.get('to_date')).strftime('%Y-%d-%m %H:%M:%S')
+
         vin = vin_obj.extra(where=["timestamp >= '%s' and timestamp <= '%s'"%(date_from,date_to)])
 
         rolldown = self.rolldown(user, vin, date_list)
@@ -247,7 +237,7 @@ class RftSearchView(View):
             'final': final,
             'overall': overall
         }
-           
+        print data 
         return JsonResponse(data, safe=False)
 
 class RftRolldownView(View):
@@ -267,7 +257,7 @@ class RftRolldownView(View):
             # else:
             if 'form[rft_rolldown_markets]' in form and form['form[rft_rolldown_markets]'] != [u'']:
                 vin = vin.filter(model__market=int(form['form[rft_rolldown_markets]'][0]))
-            if form['form[rft_rolldown_shifts]'] != [u'']:
+            if 'form[rft_rolldown_shifts]' in form and form['form[rft_rolldown_shifts]'] != [u'']:
                 vin = vin.filter(shift=int(form['form[rft_rolldown_shifts]'][0]))
             if 'form[rft_rolldown_base_models]' in form and form['form[rft_rolldown_base_models]'] != [u'']:
                 vin = vin.filter(model__base_models=int(form['form[rft_rolldown_base_models]'][0]))
@@ -329,8 +319,10 @@ class RftRolldownView(View):
         date_list = self.common.get_date_list(from_date, to_date)
         
         vin_obj = self.common.get_vin_details(user)
-        date_from = parse(request.POST.get('from_date')).strftime('%Y-%m-%d %H:%M:%S')
-        date_to = parse(request.POST.get('to_date')).strftime('%Y-%m-%d %H:%M:%S')
+
+        date_from = parse(request.POST.get('from_date')).strftime('%Y-%d-%m %H:%M:%S')
+        date_to = parse(request.POST.get('to_date')).strftime('%Y-%d-%m %H:%M:%S')
+
         vin = vin_obj.extra(where=["timestamp >= '%s' and timestamp <= '%s'"%(date_from,date_to)])
         # form = [self.removekey(form, key) for key in ['from_date', 'to_date']]
         data = self.rft_rolldown_chart_data(request, user, vin, form, date_list)
@@ -354,7 +346,7 @@ class RftFinalView(View):
             # else:
             if 'form[rft_final_markets]' in form and form['form[rft_final_markets]'] != [u'']:
                 vin = vin.filter(model__market=int(form['form[rft_final_markets]'][0]))
-            if form['form[rft_final_shifts]'] != [u'']:
+            if 'form[rft_final_shifts]' in form and form['form[rft_final_shifts]'] != [u'']:
                 vin = vin.filter(shift=int(form['form[rft_final_shifts]'][0]))
             if 'form[rft_final_base_models]' in form and form['form[rft_final_base_models]'] != [u'']:
                 vin = vin.filter(model__base_models=int(form['form[rft_final_base_models]'][0]))
@@ -417,8 +409,10 @@ class RftFinalView(View):
         date_list = self.common.get_date_list(from_date, to_date)
         
         vin_obj = self.common.get_vin_details(user)
-        date_from = parse(request.POST.get('from_date')).strftime('%Y-%m-%d %H:%M:%S')
-        date_to = parse(request.POST.get('to_date')).strftime('%Y-%m-%d %H:%M:%S')
+
+        date_from = parse(request.POST.get('from_date')).strftime('%Y-%d-%m %H:%M:%S')
+        date_to = parse(request.POST.get('to_date')).strftime('%Y-%d-%m %H:%M:%S')
+
         vin = vin_obj.extra(where=["timestamp >= '%s' and timestamp <= '%s'"%(date_from,date_to)])
 
         # form = [self.removekey(form, key) for key in ['from_date', 'to_date']]
@@ -443,7 +437,7 @@ class RftOverallView(View):
             # else:
             if 'form[rft_overall_markets]' in form and form['form[rft_overall_markets]'] != [u'']:
                 vin = vin.filter(model__market=int(form['form[rft_overall_markets]'][0]))
-            if form['form[rft_overall_shifts]'] != [u'']:
+            if 'form[rft_overall_shifts]' in form and form['form[rft_overall_shifts]'] != [u'']:
                 vin = vin.filter(shift=int(form['form[rft_overall_shifts]'][0]))
             if 'form[rft_overall_base_models]' in form and form['form[rft_overall_base_models]'] != [u'']:
                 vin = vin.filter(model__base_models=int(form['form[rft_overall_base_models]'][0]))
@@ -506,8 +500,10 @@ class RftOverallView(View):
         date_list = self.common.get_date_list(from_date, to_date)
         
         vin_obj = self.common.get_vin_details(user)
-        date_from = parse(request.POST.get('from_date')).strftime('%Y-%m-%d %H:%M:%S')
-        date_to = parse(request.POST.get('to_date')).strftime('%Y-%m-%d %H:%M:%S')
+
+        date_from = parse(request.POST.get('from_date')).strftime('%Y-%d-%m %H:%M:%S')
+        date_to = parse(request.POST.get('to_date')).strftime('%Y-%d-%m %H:%M:%S')
+
         vin = vin_obj.extra(where=["timestamp >= '%s' and timestamp <= '%s'"%(date_from,date_to)])
 
         # form = [self.removekey(form, key) for key in ['from_date', 'to_date']]
@@ -551,7 +547,6 @@ class DpuFilterView(View):
             final_form = DpuFinalFilterForm(user=get_user_dict(request), initial=request.POST)
             final_filter_form = self.render_to_dpu_final_template(request, final_form)
             return JsonResponse(final_filter_form, safe=False)
-        #import pdb;pdb.set_trace()
         if 'dpu_overall_plants' in request.POST:
             overall_form = DpuOverallFilterForm(user=get_user_dict(request), initial=request.POST)
             overall_filter_form = self.render_to_dpu_overall_template(request, overall_form)
@@ -811,8 +806,10 @@ class DpuSearchView(View):
         from_date = self.common.parse_date(request.POST.get('from_date'))
         to_date = self.common.parse_date(request.POST.get('to_date')) 
         vin_obj = self.common.get_vin_details(user) 
+
         date_from = parse(request.POST.get('from_date')).strftime('%Y-%d-%m %H:%M:%S')
         date_to = parse(request.POST.get('to_date')).strftime('%Y-%d-%m %H:%M:%S')
+
         vin = vin_obj.extra(where=["timestamp >= '%s' and timestamp <= '%s'"%(date_from,date_to)])
         date_list = self.common.get_date_list(from_date, to_date)
         rolldown = self.get_rolldown_dpu_by_date(date_list, vin)
@@ -850,7 +847,7 @@ class DpuRolldownView(View):
             # else:
             if 'form[dpu_rolldown_markets]' in form and form['form[dpu_rolldown_markets]'] != [u'']:
                 vin = vin.filter(model__market=int(form['form[dpu_rolldown_markets]'][0]))
-            if form['form[dpu_rolldown_shifts]'] != [u'']:
+            if 'form[dpu_rolldown_shifts]' in form and form['form[dpu_rolldown_shifts]'] != [u'']:
                 vin = vin.filter(shift=int(form['form[dpu_rolldown_shifts]'][0]))
             if 'form[dpu_rolldown_base_models]' in form and form['form[dpu_rolldown_base_models]'] != [u'']:
                 vin = vin.filter(model__base_models=int(form['form[dpu_rolldown_base_models]'][0]))
@@ -964,8 +961,10 @@ class DpuRolldownView(View):
         date_list = self.common.get_date_list(from_date, to_date)
         
         vin_obj = self.common.get_vin_details(user)
-        date_from = parse(request.POST.get('from_date')).strftime('%Y-%m-%d %H:%M:%S')
-        date_to = parse(request.POST.get('to_date')).strftime('%Y-%m-%d %H:%M:%S')
+
+        date_from = parse(request.POST.get('from_date')).strftime('%Y-%d-%m %H:%M:%S')
+        date_to = parse(request.POST.get('to_date')).strftime('%Y-%d-%m %H:%M:%S')
+
         vin = vin_obj.extra(where=["timestamp >= '%s' and timestamp <= '%s'"%(date_from,date_to)])
         # form = [self.removekey(form, key) for key in ['from_date', 'to_date']]
         data = self.dpu_rolldown_chart_data(request, user, vin, form, date_list)
@@ -996,7 +995,7 @@ class DpuFinalView(View):
             # else:
             if 'form[dpu_fianl_markets]' in form and form['form[dpu_fianl_markets]'] != [u'']:
                 vin = vin.filter(model__market=int(form['form[dpu_fianl_markets]'][0]))
-            if form['form[dpu_final_shifts]'] != [u'']:
+            if 'form[dpu_final_shifts]' in form and form['form[dpu_final_shifts]'] != [u'']:
                 vin = vin.filter(shift=int(form['form[dpu_final_shifts]'][0]))
             if 'form[dpu_fianl_base_models]' in form and form['form[dpu_final_base_models]'] != [u'']:
                 vin = vin.filter(model__base_models=int(form['form[dpu_final_base_models]'][0]))
@@ -1117,8 +1116,10 @@ class DpuFinalView(View):
         date_list = self.common.get_date_list(from_date, to_date)
         
         vin_obj = self.common.get_vin_details(user)
-        date_from = parse(request.POST.get('from_date')).strftime('%Y-%m-%d %H:%M:%S')
-        date_to = parse(request.POST.get('to_date')).strftime('%Y-%m-%d %H:%M:%S')
+
+        date_from = parse(request.POST.get('from_date')).strftime('%Y-%d-%m %H:%M:%S')
+        date_to = parse(request.POST.get('to_date')).strftime('%Y-%d-%m %H:%M:%S')
+
         vin = vin_obj.extra(where=["timestamp >= '%s' and timestamp <= '%s'"%(date_from,date_to)])
         # form = [self.removekey(form, key) for key in ['from_date', 'to_date']]
         data = self.dpu_final_chart_data(request, user, vin, form, date_list)
@@ -1149,7 +1150,7 @@ class DpuOverallView(View):
             # else:
             if 'form[dpu_overall_markets]' in form and form['form[dpu_overall_markets]'] != [u'']:
                 vin = vin.filter(model__market=int(form['form[dpu_overall_markets]'][0]))
-            if form['form[dpu_overall_shifts]'] != [u'']:
+            if 'form[dpu_overall_shifts]' in form and form['form[dpu_overall_shifts]'] != [u'']:
                 vin = vin.filter(shift=int(form['form[dpu_overall_shifts]'][0]))
             if 'form[dpu_overall_base_models]' in form and form['form[dpu_overall_base_models]'] != [u'']:
                 vin = vin.filter(model__base_models=int(form['form[dpu_final_base_models]'][0]))
@@ -1267,9 +1268,12 @@ class DpuOverallView(View):
         date_list = self.common.get_date_list(from_date, to_date)
         
         vin_obj = self.common.get_vin_details(user)
-        date_from = parse(request.POST.get('from_date')).strftime('%Y-%m-%d %H:%M:%S')
-        date_to = parse(request.POST.get('to_date')).strftime('%Y-%m-%d %H:%M:%S')
+
+        date_from = parse(request.POST.get('from_date')).strftime('%Y-%d-%m %H:%M:%S')
+        date_to = parse(request.POST.get('to_date')).strftime('%Y-%d-%m %H:%M:%S')
+
         vin = vin_obj.extra(where=["timestamp >= '%s' and timestamp <= '%s'"%(date_from,date_to)])
+        print vin
         # form = [self.removekey(form, key) for key in ['from_date', 'to_date']]
         data = self.dpu_overall_chart_data(request, user, vin, form, date_list)
         #print data

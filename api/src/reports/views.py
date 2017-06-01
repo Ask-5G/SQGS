@@ -30,6 +30,17 @@ def get_image(request, pk):
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
+def get_queryset(request, myModel):
+    try:
+        date = request.GET.get('last_modified_date')
+        if date != '':
+            query = myModel.objects.filter(last_modified_date__gte=date)
+        else:
+            query = myModel.objects.all()   
+        return query   
+    except Exception as e:
+        raise
+    
 class ReportsView(APIView):
     
     authentication_classes = (SQGSTokenAuthentication,)
@@ -69,15 +80,14 @@ class PingRequestView(APIView):
 
     def post(self, request, format=None):
         updated_model_list = []
-        data = request.data
         updated_tables = UpdatedTables.objects.all().order_by('priority')
-        if len(data) == 0:
+        if len(request.data) == 0:
             serializer = UpdatedTablesSerializer(updated_tables, many=True)
             return Response({'updated_tables': serializer.data}, status=status.HTTP_200_OK)
         else:
             for updated_table in updated_tables:
                 table_name_found = False
-                for requested_table in data:
+                for requested_table in request.data:
                     if updated_table.name ==\
                             requested_table['name']:
                         table_name_found = True
@@ -98,11 +108,7 @@ class ImagesView(APIView):
     authentication_classes = (SQGSTokenAuthentication,)
 
     def get(self, request, format=None):
-        date = request.GET.get('last_modified_date')
-        if date != '':
-            images = Images.objects.filter(last_modified_date__gte=date)
-        else:
-            images = Images.objects.all()
+        images = get_queryset(request, Images)
         serializer = ImagesSerializer(images, many=True)
         return Response({'images': serializer.data})
     

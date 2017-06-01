@@ -27,8 +27,7 @@ from organization.serializers import (PlantsSerializer,
 from organization.authentication import get_device_header, \
     validate_device_header
 from django.http import HttpResponse
-
-
+from reports.views import get_queryset
 
 class ObtainAuthToken(APIView):
 
@@ -116,11 +115,7 @@ class PlantsView(APIView):
 
 
     def get(self, request, format=None):
-        date = request.GET.get('last_modified_date')
-        if date != '':
-            plants = Plants.objects.filter(last_modified_date__gte=date)
-        else:
-            plants = Plants.objects.all()
+        plants = get_queryset(request, Plants)
         serializer = PlantsSerializer(plants, many=True)
         return Response({'plants': serializer.data})
 
@@ -129,11 +124,7 @@ class CellsView(APIView):
     authentication_classes = (SQGSTokenAuthentication,)
 
     def get(self, request, format=None):
-        date = request.GET.get('last_modified_date')
-        if date != '':
-            cells = Cells.objects.filter(last_modified_date__gte=date)
-        else:
-            cells = Cells.objects.all()
+        cells = get_queryset(request, Cells)
         serializer = CellsSerializer(cells, many=True)
         return Response({'cells': serializer.data})
 
@@ -142,11 +133,7 @@ class StagesView(APIView):
     authentication_classes = (SQGSTokenAuthentication,)
 
     def get(self, request, format=None):
-        date = request.GET.get('last_modified_date')
-        if date != '':
-            stage = Stages.objects.filter(last_modified_date__gte=date)
-        else:
-            stage = Stages.objects.all()
+        stage = get_queryset(request, Stages)
         serializer = StagesSerializer(stage, many=True)
         return Response({'stages': serializer.data})
 
@@ -155,12 +142,8 @@ class  ModelStationsView(APIView):
     authentication_classes = (SQGSTokenAuthentication,)
     
     def get(self, request, format=None):
-        date = request.GET.get('last_modified_date')
-        if date != '':
-            model_station_stage =  ModelStations.objects.filter(last_modified_date__gte=date)
-        else:
-            model_station_stage =  ModelStations.objects.all()
-        serializer =  ModelStationsSerializer(model_station_stage, many=True)
+        model_station = get_queryset(request, ModelStations)
+        serializer =  ModelStationsSerializer(model_station, many=True)
         return Response({'modelStations': serializer.data})
 
 class StationsView(APIView):
@@ -168,11 +151,7 @@ class StationsView(APIView):
     authentication_classes = (SQGSTokenAuthentication,)
 
     def get(self, request, format=None):
-        date = request.GET.get('last_modified_date')
-        if date != '':
-            station = Stations.objects.filter(last_modified_date__gte=date)
-        else:
-            station = Stations.objects.all()
+        station = get_queryset(request, Stations)
         serializer = StationsSerializer(station, many=True)
         return Response({'stations': serializer.data})
 
@@ -181,11 +160,7 @@ class ShiftsView(APIView):
     authentication_classes = (SQGSTokenAuthentication,)
 
     def get(self, request, format=None):
-        date = request.GET.get('last_modified_date')
-        if date != '':
-            shifts = Shifts.objects.filter(last_modified_date__gte=date)
-        else:
-            shifts = Shifts.objects.all()
+        shifts = get_queryset(request, Shifts)
         serializer = ShiftsSerializer(shifts, many=True)
         return Response({'shifts': serializer.data})
 
@@ -194,7 +169,7 @@ class RolesView(APIView):
     authentication_classes = (SQGSTokenAuthentication,)
 
     def get(self, request, format=None):
-        roles = Roles.objects.all()
+        roles = get_queryset(request, Roles)
         serializer = RolesSerializer(roles, many=True)
         return Response({'roles': serializer.data})
 
@@ -203,11 +178,7 @@ class UsersView(APIView):
     authentication_classes = (SQGSTokenAuthentication,)
 
     def get(self, request, format=None):
-        date = request.GET.get('last_modified_date')
-        if date != '':
-            users = Users.objects.filter(last_modified_date__gte=date)
-        else:
-            users = Users.objects.all()
+        users = get_queryset(request, Users)
         serializer = UsersSerializer(users, many=True)
         return Response({'users': serializer.data})
 
@@ -216,11 +187,7 @@ class SkilllevelView(APIView):
     authentication_classes = (SQGSTokenAuthentication,)
 
     def get(self, request, format=None):
-        date = request.GET.get('last_modified_date')
-        if date != '':
-            skilllevel = SkillLevel.objects.filter(last_modified_date__gte=date)
-        else:
-            skilllevel = SkillLevel.objects.all()
+        skilllevel = get_queryset(request, SkillLevel)
         serializer = SkillLevelSerializer(skilllevel, many=True)
         return Response({'skilllevel': serializer.data})
 
@@ -229,11 +196,7 @@ class StageUserView(APIView):
     authentication_classes = (SQGSTokenAuthentication,)
 
     def get(self, request, format=None):
-        date = request.GET.get('last_modified_date')
-        if date != '':
-            stageuser = StageUser.objects.filter(last_modified_date__gte=date)
-        else:
-            stageuser = StageUser.objects.all()
+        stageuser = get_queryset(request, StageUser)
         serializer = StageUserSerializer(stageuser, many=True)
         return Response({'stageuser': serializer.data})
 
@@ -242,11 +205,7 @@ class DefectCategoriesView(APIView):
     authentication_classes = (SQGSTokenAuthentication,)
 
     def get(self, request, format=None):
-        date = request.GET.get('last_modified_date')
-        if date != '':
-            defectcategories = DefectCategories.objects.filter(last_modified_date__gte=date)
-        else:
-            defectcategories = DefectCategories.objects.all()
+        defectcategories = get_queryset(request, DefectCategories)
         serializer = DefectCategoriesSerializer(defectcategories, many=True)
         return Response({'defectcategories': serializer.data})
 
@@ -255,11 +214,7 @@ class SourceGatesView(APIView):
     authentication_classes = (SQGSTokenAuthentication,)
 
     def get(self, request, format=None):
-        date = request.GET.get('last_modified_date')
-        if date != '':
-            sourcegates = SourceGates.objects.filter(last_modified_date__gte=date)
-        else:
-            sourcegates = SourceGates.objects.all()
+        sourcegates = get_queryset(request, SourceGates)
         serializer = SourceGatesSerializer(sourcegates, many=True)
         return Response({'sourcegates': serializer.data})
 

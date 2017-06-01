@@ -17,6 +17,7 @@ from organization.authentication import SQGSTokenAuthentication
 from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
 from rest_framework.decorators import api_view
 from django.http import HttpResponse
+from reports.views import get_queryset
 
 
 class PartsView(APIView):
@@ -24,13 +25,8 @@ class PartsView(APIView):
     authentication_classes = (SQGSTokenAuthentication,)
 
     def get(self, request, format=None):
-        date = request.GET.get('last_modified_date')
-        if date != '':
-            parts = Parts.objects.filter(last_modified_date__gte=date)
-        else:
-            parts = Parts.objects.all()
+        parts = get_queryset(request, Parts)
         serializer = PartsSerializer(parts, many=True)
-        print serializer.data
         return Response({'parts': serializer.data})
     
 
@@ -39,11 +35,7 @@ class ModelsView(APIView):
     authentication_classes = (SQGSTokenAuthentication,)
 
     def get(self, request, format=None):
-        date = request.GET.get('last_modified_date')
-        if date != '':
-            models = Models.objects.filter(last_modified_date__gte=date)
-        else:
-            models = Models.objects.all()
+        models = get_queryset(request, Models)
         serializer = ModelsSerializer(models, many=True)
         return Response({'models': serializer.data})
 
@@ -53,7 +45,7 @@ class ModelPartsView(APIView):
     authentication_classes = (SQGSTokenAuthentication,)
 
     def get(self, request, format=None):
-        modelparts = ModelParts.objects.all()
+        modelparts = get_queryset(request, ModelParts)
         serializer = ModelPartsSerializer(modelparts, many=True)
         return Response({'modelParts': serializer.data})
 

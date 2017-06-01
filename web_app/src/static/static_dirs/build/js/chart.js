@@ -224,7 +224,7 @@ echarts.init(document.getElementById("rolldown_date_wise"), a);
                 },
                 legend: {
                     data: ["No. of Tractors", "RFT OK", "RFT NOT OK"],
-					x: 'right'
+                    x: 'right'
                 },
                 toolbox: {
                     show: !0,
@@ -443,7 +443,7 @@ echarts.init(document.getElementById("overall_date_wise"), a);
                 },
                 legend: {
                     data: ["No. of Tractors", "RFT OK", "RFT NOT OK"],
-					x: 'right'
+                    x: 'right'
                 },
                 toolbox: {
                     show: !0,
@@ -769,7 +769,7 @@ echarts.init(document.getElementById("rolldown_filter_wise"), a);
                 },
                 legend: {
                     data: ["No. of Tractors", "RFT OK", "RFT NOT OK"],
-					x: 'right'
+                    x: 'right'
                 },
                 toolbox: {
                     show: !0,
@@ -2395,7 +2395,7 @@ function dpu_rolldown_filter_wise_charts(data){
 }
 
 
-function final_filter_wise_charts(data){
+function dpu_final_filter_wise_charts(data){
      // alert(data.mark_data)
     if ("undefined" != typeof echarts) {
         console.log("init_echarts");
@@ -2724,7 +2724,7 @@ function final_filter_wise_charts(data){
 }
 
 
-function overall_filter_wise_charts(data){
+function dpu_final_filter_wise_charts(data){
      // alert(data.mark_data)
     if ("undefined" != typeof echarts) {
         console.log("init_echarts");

@@ -6,7 +6,7 @@ class ReportsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Reports
-        fields = ('name')
+        fields = "__all__"
 
     def update(self, instance, validated_data):
         
@@ -18,7 +18,7 @@ class ReportScheduleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ReportSchedule
-        fields = ('hour','day','month','shift','week','reports')
+        fields = "__all__"
 
     def update(self, instance, validated_data):
         
@@ -35,7 +35,7 @@ class ReportDeliverySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ReportDelivery
-        fields = ('user_id','role_id','report_schedule')  
+        fields = "__all__" 
 
     def update(self, instance, validated_data):
         
@@ -49,7 +49,7 @@ class UpdatedTablesSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UpdatedTables
-        fields = ('name','last_modified_date')
+        fields = "__all__"
 
 class ImagesSerializer(serializers.ModelSerializer):
 
