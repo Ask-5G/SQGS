@@ -2396,7 +2396,6 @@ function dpu_rolldown_filter_wise_charts(data){
 
 
 function dpu_final_filter_wise_charts(data){
-     // alert(data.mark_data)
     if ("undefined" != typeof echarts) {
         console.log("init_echarts");
         var a = {
@@ -2630,7 +2629,6 @@ function dpu_final_filter_wise_charts(data){
             }
         
         if ($("#dpu_final_filter_wise").length) {
-            // alert(data.rolldown.source_list)
             var f = echarts.init(document.getElementById("dpu_final_filter_wise"), a);
             f.setOption({
                 title: {
@@ -2724,7 +2722,7 @@ function dpu_final_filter_wise_charts(data){
 }
 
 
-function dpu_final_filter_wise_charts(data){
+function dpu_overall_filter_wise_charts(data){
      // alert(data.mark_data)
     if ("undefined" != typeof echarts) {
         console.log("init_echarts");
