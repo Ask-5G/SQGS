@@ -134,19 +134,19 @@ class RftSearchView(View):
             
             rft_ok.append(overall_obj.filter(overall_status='RFT OK').count())
             not_ok.append(overall_obj.filter(overall_status='RFT NOT OK').count())
-            no_of_tractors.append(overall_obj.count())
+            # no_of_tractors.append(overall_obj.count())
 
             if overall_obj.filter(overall_status='RFT OK').count() != 0:
                 percentage = float("{0:.2f}".format((overall_obj.filter(overall_status='RFT OK').count()/float(len(overall_obj)))*100))
             else:
                 percentage = 0
-                
+            no_of_tractors.append(percentage)    
             if len(overall_obj) != 0:
                 percentage_dict={
                     'name': "Overall RFT(%)",
                     'value': percentage,
                     'xAxis': _date,
-                    'yAxis': overall_obj.count()
+                    'yAxis': percentage
                 }
                 mark_data.append(percentage_dict)
         data = self.get_data_dict('Overall RFT ', date_list, rft_ok, not_ok, no_of_tractors, mark_data)
@@ -165,19 +165,19 @@ class RftSearchView(View):
 
             rft_ok.append(final_obj.filter(final_status='RFT OK').count())
             not_ok.append(final_obj.filter(final_status='RFT NOT OK').count())
-            no_of_tractors.append(final_obj.count())
+            # no_of_tractors.append(final_obj.count())
 
             if final_obj.filter(final_status='RFT OK').count() != 0:
                 percentage = float("{0:.2f}".format((final_obj.filter(final_status='RFT OK').count()/float(len(final_obj)))*100))
             else:
                 percentage = 0
-                
+            no_of_tractors.append(percentage)     
             if len(final_obj) != 0:
                 percentage_dict={
                     'name': "Final RFT(%)",
                     'value': percentage,
                     'xAxis': _date,
-                    'yAxis': final_obj.count()
+                    'yAxis': percentage
                 }
                 mark_data.append(percentage_dict)
         data = self.get_data_dict('Final RFT ', date_list, rft_ok, not_ok, no_of_tractors, mark_data)
@@ -197,19 +197,19 @@ class RftSearchView(View):
 
             rft_ok.append(vin_status_obj.filter(status='RFT OK').count())
             not_ok.append(vin_status_obj.filter(status='RFT NOT OK').count())
-            no_of_tractors.append(vin_status_obj.count())
+            # no_of_tractors.append(vin_status_obj.count())
 
             if vin_status_obj.filter(status='RFT OK').count() != 0:
                 percentage = float("{0:.2f}".format((vin_status_obj.filter(status='RFT OK').count()/float(len(vin_status_obj)))*100))
             else:
                 percentage = 0
-
+            no_of_tractors.append(percentage) 
             if len(vin_status_obj) != 0:
                 percentage_dict={
                     'name': "Rolldown RFT(%)",
                     'value': percentage,
                     'xAxis': _date,
-                    'yAxis': vin_status_obj.count()
+                    'yAxis': percentage
                 }
                 mark_data.append(percentage_dict)
         data = self.get_data_dict('Rolldown RFT ', date_list, rft_ok, not_ok, no_of_tractors, mark_data)
@@ -277,19 +277,19 @@ class RftRolldownView(View):
             # vin_obj = VinStatus.objects.filter(vin__in=set(current_vin))
             self.rft_ok.append(vin_obj.filter(status='RFT OK').count())
             self.not_ok.append(vin_obj.filter(status='RFT NOT OK').count())
-            self.no_of_tractors.append(vin_obj.count())
+            # self.no_of_tractors.append(vin_obj.count())
 
             if vin_obj.filter(status='RFT OK').count() != 0:
                 percentage = float("{0:.2f}".format((vin_obj.filter(status='RFT OK').count()/float(len(vin_obj)))*100))
             else:
                 percentage = 0
-
+            self.no_of_tractors.append(percentage)
             if len(vin_obj) != 0:
                 percentage_dict={
                     'name': "Rolldown RFT(%)",
                     'value': percentage,
                     'xAxis': _date,
-                    'yAxis': vin_obj.count()
+                    'yAxis': percentage
                 }
                 self.mark_data.append(percentage_dict)
         data = {
@@ -367,19 +367,19 @@ class RftFinalView(View):
             vin_obj = FinalRFT.objects.filter(vin__in=set(current_vin))
             self.rft_ok.append(vin_obj.filter(final_status='RFT OK').count())
             self.not_ok.append(vin_obj.filter(final_status='RFT NOT OK').count())
-            self.no_of_tractors.append(vin_obj.count())
+            # self.no_of_tractors.append(vin_obj.count())
 
             if vin_obj.filter(final_status='RFT OK').count() != 0:
                 percentage = float("{0:.2f}".format((vin_obj.filter(final_status='RFT OK').count()/float(len(vin_obj)))*100))
             else:
                 percentage = 0
-
+            self.no_of_tractors.append(percentage)
             if len(vin_obj) != 0:
                 percentage_dict={
                     'name': "Final RFT(%)",
                     'value': percentage,
                     'xAxis': _date,
-                    'yAxis': vin_obj.count()
+                    'yAxis': percentage
                 }
                 self.mark_data.append(percentage_dict)
         data = {
@@ -458,19 +458,19 @@ class RftOverallView(View):
             vin_obj = FinalRFT.objects.filter(vin__in=set(current_vin))
             self.rft_ok.append(vin_obj.filter(overall_status='RFT OK').count())
             self.not_ok.append(vin_obj.filter(overall_status='RFT NOT OK').count())
-            self.no_of_tractors.append(vin_obj.count())
+            # self.no_of_tractors.append(vin_obj.count())
 
             if vin_obj.filter(overall_status='RFT OK').count() != 0:
                 percentage = float("{0:.2f}".format((vin_obj.filter(overall_status='RFT OK').count()/float(len(vin_obj)))*100))
             else:
                 percentage = 0
-
+            self.no_of_tractors.append(percentage)
             if len(vin_obj) != 0:
                 percentage_dict={
                     'name': "Overall RFT(%)",
                     'value': percentage,
                     'xAxis': _date,
-                    'yAxis': vin_obj.count()
+                    'yAxis': percentage
                 }
                 self.mark_data.append(percentage_dict)
         data = {
@@ -1300,6 +1300,7 @@ class SummarySearchView(View):
             request.POST.get('from_date'))
         to_date = self.common.parse_date(
             request.POST.get('to_date'))
+        # plant = request.POST.get('plant')
         date_list = self.common.get_date_list(from_date, to_date)
         vin_status_and_rft = []        
         for _date in date_list:

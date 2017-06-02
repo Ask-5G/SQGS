@@ -223,7 +223,7 @@ echarts.init(document.getElementById("rolldown_date_wise"), a);
                     trigger: "axis"
                 },
                 legend: {
-                    data: ["No. of Tractors", "RFT OK", "RFT NOT OK"],
+                    data: ["RFT Percentage", "RFT OK", "RFT NOT OK"],
                     x: 'right'
                 },
                 toolbox: {
@@ -298,17 +298,27 @@ echarts.init(document.getElementById("rolldown_date_wise"), a);
                 }],
                 yAxis: [{
                     type: "value",
-                    name: "No. of Tractors"
+                    name: "No. Of Tractors"
+                },{
+                    type: "value",
+                    name: "Percentage"
                 }],
                 
                 series: [{
-                    name: "No. of Tractors",
+                    name: "RFT Percentage",
                     type: "line",
                     data: data.rolldown.no_of_tractors,
-                    
+                    yAxisIndex: 1,
+                    smooth: !0,
+
                     markPoint: {
                         data: data.rolldown.mark_data
                     },
+                    markLine : {
+                        data : [
+                            {type : 'average', name : 'RFT Avg Percentage'}
+                        ]
+                    }
                 }, {
                     name: "RFT OK",
                     type: "bar",
@@ -333,7 +343,7 @@ echarts.init(document.getElementById("final_date_wise"), a);
                     trigger: "axis"
                 },
                 legend: {
-                    data: ["No. of Tractors", "RFT OK", "RFT NOT OK"],
+                    data: ["RFT Percentage", "RFT OK", "RFT NOT OK"],
                     x: 'right'
                 },
                 toolbox: {
@@ -408,16 +418,26 @@ echarts.init(document.getElementById("final_date_wise"), a);
                 }],
                 yAxis: [{
                     type: "value",
-                    name: "No. of Tractors"
+                    name: "No. Of Tractors"
+                },{
+                    type: "value",
+                    name: "Percentage"
                 }],
                 series: [{
-                    name: "No. of Tractors",
+                    name: "RFT Percentage",
                     type: "line",
                     data: data.final.no_of_tractors,
+                    yAxisIndex: 1,
+                    smooth: !0,
 
                     markPoint: {
                         data: data.final.mark_data
                     },
+                    markLine : {
+                        data : [
+                            {type : 'average', name : 'RFT Avg Percentage'}
+                        ]
+                    }
                 }, {
                     name: "RFT OK",
                     type: "bar",
@@ -442,7 +462,7 @@ echarts.init(document.getElementById("overall_date_wise"), a);
                     trigger: "axis"
                 },
                 legend: {
-                    data: ["No. of Tractors", "RFT OK", "RFT NOT OK"],
+                    data: ["RFT Percentage", "RFT OK", "RFT NOT OK"],
                     x: 'right'
                 },
                 toolbox: {
@@ -518,16 +538,26 @@ echarts.init(document.getElementById("overall_date_wise"), a);
                 yAxis: [{
                     type: "value",
                     name: "No. of Tractors"
+                },{
+                    type: "value",
+                    name: "Percentage"
                 }],
                 
                 series: [{
-                    name: "No. of Tractors",
+                    name: "RFT Percentage",
                     type: "line",
+                    yAxisIndex: 1,
+                    smooth: !0,
                     data: data.overall.no_of_tractors,
 
                     markPoint: {
                         data: data.overall.mark_data
                     },
+                    markLine : {
+                        data : [
+                            {type : 'average', name : 'RFT Avg Percentage'}
+                        ]
+                    }
                 }, {
                     name: "RFT OK",
                     type: "bar",
@@ -768,7 +798,7 @@ echarts.init(document.getElementById("rolldown_filter_wise"), a);
                     trigger: "axis"
                 },
                 legend: {
-                    data: ["No. of Tractors", "RFT OK", "RFT NOT OK"],
+                    data: ["RFT Percentage", "RFT OK", "RFT NOT OK"],
                     x: 'right'
                 },
                 toolbox: {
@@ -843,17 +873,27 @@ echarts.init(document.getElementById("rolldown_filter_wise"), a);
                 }],
                 yAxis: [{
                     type: "value",
-                    name: "No. of Tractors"
+                    name: "No. Of Tractors"
+                },{
+                    type: "value",
+                    name: "Percentage"
                 }],
                 
                 series: [{
-                    name: "No. of Tractors",
+                    name: "RFT Percentage",
                     type: "line",
                     data: data.no_of_tractors,
+                    yAxisIndex: 1,
+                    smooth: !0,
 
                     markPoint: {
                         data: data.mark_data
                     },
+                    markLine : {
+                        data : [
+                            {type : 'average', name : 'RFT Avg Percentage'}
+                        ]
+                    }
                 }, {
                     name: "RFT OK",
                     type: "bar",
@@ -1094,7 +1134,7 @@ echarts.init(document.getElementById("final_filter_wise"), a);
                     trigger: "axis"
                 },
                 legend: {
-                    data: ["No. of Tractors", "RFT OK", "RFT NOT OK"],
+                    data: ["RFT Percentage", "RFT OK", "RFT NOT OK"],
                     x: 'right'
                 },
                 toolbox: {
@@ -1170,16 +1210,27 @@ echarts.init(document.getElementById("final_filter_wise"), a);
                 yAxis: [{
                     type: "value",
                     name: "No. of Tractors"
+                },{
+                    type: "value",
+                    name: "Percentage"
                 }],
                 
                 series: [{
-                    name: "No. of Tractors",
+                    name: "RFT Percentage",
                     type: "line",
+                    yAxisIndex: 1,
+                    smooth: !0,
+
                     data: data.no_of_tractors,
 
                     markPoint: {
                         data: data.mark_data
                     },
+                    markLine : {
+                        data : [
+                            {type : 'average', name : 'RFT Avg Percentage'}
+                        ]
+                    }
                 }, {
                     name: "RFT OK",
                     type: "bar",
@@ -1420,7 +1471,7 @@ echarts.init(document.getElementById("overall_filter_wise"), a);
                     trigger: "axis"
                 },
                 legend: {
-                    data: ["No. of Tractors", "RFT OK", "RFT NOT OK"],
+                    data: ["RFT Percentage", "RFT OK", "RFT NOT OK"],
                     x: 'right'
                 },
                 toolbox: {
@@ -1496,16 +1547,26 @@ echarts.init(document.getElementById("overall_filter_wise"), a);
                 yAxis: [{
                     type: "value",
                     name: "No. of Tractors"
+                },{
+                    type: "value",
+                    name: "Percentage"
                 }],
                 
                 series: [{
-                    name: "No. of Tractors",
+                    name: "RFT Percentage",
                     type: "line",
                     data: data.no_of_tractors,
+                    yAxisIndex: 1,
+                    smooth: !0,
 
                     markPoint: {
                         data: data.mark_data
                     },
+                    markLine : {
+                        data : [
+                            {type : 'average', name : 'RFT Avg Percentage'}
+                        ]
+                    }
                 }, {
                     name: "RFT OK",
                     type: "bar",
