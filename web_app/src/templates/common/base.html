@@ -28,10 +28,14 @@
 
     <!-- Custom Theme Style -->
     <link href='{% static "/build/css/custom.min.css" %}' rel="stylesheet">
+    <link href='{% static "/build/dist/loading.min.css" %}'rel="stylesheet" type="text/css">
     {% block styles %}{% endblock %}
     
     <!-- jQuery -->
     <script src='{% static "/vendors/jquery/dist/jquery.min.js" %}'></script>
+
+    <script src='{% static "/build/dist/jquery.loading.min.js" %}'></script>
+
     <!-- Bootstrap -->
     <script src='{% static "/vendors/bootstrap/dist/js/bootstrap.min.js" %}'></script>
     <!-- FastClick -->
@@ -193,6 +197,7 @@
     <!-- Custom Theme Scripts -->
     <script src='{% static "/build/js/custom.min.js" %}'></script>
     <script src='{% static "/build/js/chart.js" %}'></script>  
+    <script src='{% static "/build/js/loading.js" %}'></script>
 
     <!-- Datatables -->
     <script src='{% static "/build/DataTables-1.10.15/media/js/jquery.dataTables.js" %}'></script>

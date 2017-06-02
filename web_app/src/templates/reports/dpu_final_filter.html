@@ -66,13 +66,41 @@ $("#id_dpu_final_plants, #id_dpu_final_markets, #id_dpu_final_shifts, #id_dpu_fi
                 'form': getFormData(frm),
               },
               dataType: 'json',
+                beforeSend: function(xhr, settings) {
+                   function getCookie(name) {
+                       var cookieValue = null;
+                       if (document.cookie && document.cookie != '') {
+                           var cookies = document.cookie.split(';');
+                           for (var i = 0; i < cookies.length; i++) {
+                               var cookie = jQuery.trim(cookies[i]);
+                               // Does this cookie string begin with the name we want?
+                               if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                                   cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                   break;
+                               }
+                           }
+                       }
+                       return cookieValue;
+                   }
+                   if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+                       // Only send the token to relative URLs i.e. locally.
+                       xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+                   }
+                   $.showLoading({allowHide: true}); 
+               },
               success: function (data) {
                   $('#dpu_final_date_wise').html("");
                   $('#dpu_final_date_wise').hide();
                   $('#dpu_final_filter_wise').html("");
                   $('#dpu_final_filter_wise').show();
                   dpu_final_filter_wise_charts(data)
-              }
+              },
+              complete: function() {
+                  $.hideLoading(); 
+              },
+              error: function() {
+                  alert('Error') 
+              }  
             });   
         }
       });

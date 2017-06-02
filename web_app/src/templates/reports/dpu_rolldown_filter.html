@@ -43,9 +43,34 @@
 
 {% block script %}
 <script type="text/javascript">
+/* Generating CSRF-TOKEN for AJAX POST*/
+$.ajaxSetup({
+     beforeSend: function(xhr, settings) {
+         function getCookie(name) {
+             var cookieValue = null;
+             if (document.cookie && document.cookie != '') {
+                 var cookies = document.cookie.split(';');
+                 for (var i = 0; i < cookies.length; i++) {
+                     var cookie = jQuery.trim(cookies[i]);
+                     // Does this cookie string begin with the name we want?
+                     if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                         cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                         break;
+                     }
+                 }
+             }
+             return cookieValue;
+         }
+         if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+             // Only send the token to relative URLs i.e. locally.
+             xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+         }
+     }
+});
+
 $("#id_dpu_rolldown_plants, #id_dpu_rolldown_markets, #id_dpu_rolldown_shifts, #id_dpu_rolldown_base_models, #id_dpu_rolldown_models, #id_dpu_rolldown_sourcegates").change(function (e) {
       e.preventDefault();
-
+      
       var frm = $(this).closest('form');
       var from_date = $("#dpu_filter input[name=from_date]").val();
       var to_date = $("#dpu_filter input[name=to_date]").val();   
@@ -66,14 +91,44 @@ $("#id_dpu_rolldown_plants, #id_dpu_rolldown_markets, #id_dpu_rolldown_shifts, #
                 'form': getFormData(frm),
               },
               dataType: 'json',
+              beforeSend: function(xhr, settings) {
+                 function getCookie(name) {
+                     var cookieValue = null;
+                     if (document.cookie && document.cookie != '') {
+                         var cookies = document.cookie.split(';');
+                         for (var i = 0; i < cookies.length; i++) {
+                             var cookie = jQuery.trim(cookies[i]);
+                             // Does this cookie string begin with the name we want?
+                             if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                                 cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                 break;
+                             }
+                         }
+                     }
+                     return cookieValue;
+                 }
+                 if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+                     // Only send the token to relative URLs i.e. locally.
+                     xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+                 }
+                 $.showLoading({allowHide: true}); 
+             },
+              // beforeSend: function() {
+              //     $.showLoading({allowHide: true});    
+              // },
               success: function (data) {
-                  // alert(data)
                   $('#dpu_rolldown_date_wise').html("");
                   $('#dpu_rolldown_date_wise').hide();
                   $('#dpu_rolldown_filter_wise').html("");
                   $('#dpu_rolldown_filter_wise').show();
-                  dpu_rolldown_filter_wise_charts(data)
-              }
+                  dpu_rolldown_filter_wise_charts(data);
+              },
+              complete: function() {
+                  $.hideLoading(); 
+              },
+              error: function() {
+                  alert('Error') 
+              }  
             });   
         }
       });
