@@ -17,6 +17,9 @@ from reports.templatetags import custom_tags
 from collections import defaultdict
 from collections import Counter
 from itertools import chain
+from django.http import HttpResponse
+import json
+from django.db.models import Q
 
 
 def get_user_dict(request):
@@ -1286,21 +1289,43 @@ class SummaryView(FormView):
     template_name = 'reports/summary.html'
 
     def get(self, request, *args, **kwargs):
+        plants = Plants.objects.all()
         data = {
-        'username': 'Guest User'
+        'username': 'Guest User',
+        'plants': plants
         }
         return render(request, self.template_name, data)
 
-
+class SummaryfilterView(View):
+    def post(self, request, *args, **kwargs):
+        # import pdb;pdb.set_trace()
+        plant = Plants.objects.get(id=request.POST.get('plant'))
+        cells = Cells.objects.filter(plants = plant.id)
+        station = Stations.objects.filter(cells__in = cells)
+        station_id_list = station.values_list('id', flat=True)
+        model_station = ModelStations.objects.filter(station__in = station_id_list).values_list('model',flat=True)
+        market = Models.objects.filter(id__in=model_station).values('market__description','market__id')
+        model = Models.objects.filter(id__in=model_station)
+        shift = Shifts.objects.filter(plants = plant.id)
+        basemodel = Models.objects.filter(id__in=model_station).values('base_models__description', 'base_models__id')
+        return JsonResponse( {'station':list(station.values('id','description')),'market':list(market),'basemodel':list(basemodel),
+            'model':list(model.values('id','description')),'shift':list(shift.values('id','description'))}, safe=False)
 
 class SummarySearchView(View):
     common = Common()
     def post(self, request, *args, **kwargs):
+        # print request.POST
+        plant = request.POST.get('plant')
+        # print "plant",plant
+        market = request.POST.get('market')
+        basemodel = request.POST.get('basemodel')
+        model = request.POST.get('model')
+        station = request.POST.get('station')
+        shift = request.POST.get('shift')
         from_date =self.common.parse_date(
             request.POST.get('from_date'))
         to_date = self.common.parse_date(
             request.POST.get('to_date'))
-        # plant = request.POST.get('plant')
         date_list = self.common.get_date_list(from_date, to_date)
         vin_status_and_rft = []        
         for _date in date_list:
@@ -1309,8 +1334,16 @@ class SummarySearchView(View):
             rolldown_defects = 0
             final_defects = 0
             overall_defects = 0
-            vin_status_obj = VinStatus.objects.filter(last_modified_date__contains='-'.join(_date))
-            final_status_obj = FinalRFT.objects.filter(last_modified_date__contains='-'.join(_date))
+            query = self.get_query(request)
+            # import pdb;pdb.set_trace()
+            if query:
+                vin_list = VinDetails.objects.filter(query).values_list('vin',flat=True)
+                vin_status_obj = VinStatus.objects.filter(last_modified_date__contains='-'.join(_date), vin__in=vin_list)
+                final_status_obj = FinalRFT.objects.filter(last_modified_date__contains='-'.join(_date),vin__in=vin_list)
+            # print vin_list.count()
+            else:
+                vin_status_obj = VinStatus.objects.filter(last_modified_date__contains='-'.join(_date))
+                final_status_obj = FinalRFT.objects.filter(last_modified_date__contains='-'.join(_date))
             for vin_status in vin_status_obj:
                 rolldown_defects += InspectionDefects.objects.filter(vin__vin=vin_status.vin).exclude(vin__stations__description='Final Inspection').count()
                 final_defects += InspectionDefects.objects.filter(vin__vin=vin_status.vin).filter(vin__stations__description='Final Inspection').count()
@@ -1347,6 +1380,23 @@ class SummarySearchView(View):
         return JsonResponse(response, safe=False)
 
 
+    def get_query(self, request):
+        query=Q()
+        if request.POST.get('plant') == 'All':
+            query &= Q()
+        if request.POST.get('plant') != 'All':
+            query &=Q(stations__cells__plants__id=request.POST.get('plant'))
+        if request.POST.get('market') != 'All':
+            query &=Q(model__market__id=request.POST.get('market'))
+        if request.POST.get('basemodel') != 'All':
+            query &=Q(model__base_models__id=request.POST.get('basemodel'))
+        if request.POST.get('model') != 'All':
+           query &=Q(model__id=request.POST.get('model'))
+        if request.POST.get('station') != 'All':
+           query &=Q(stations__id=request.POST.get('station'))
+        if request.POST.get('shift') != 'All':
+           query &=Q(shift__id=request.POST.get('shift'))
+        return query
 
     def render_to_template(self, vin_status_and_rft, request):
         template = TemplateResponse(request, 'reports/summary_table.html', {

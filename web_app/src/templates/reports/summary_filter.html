@@ -1,108 +1,274 @@
 <div class="clearfix"></div>
-    <div class="row">
-      <div class="col-md-12 col-sm-12 col-xs-12">
+<div class="row">
+    <div class="col-md-12 col-sm-12 col-xs-12">
         <div class="x_panel">
-          <div class="x_title">
-            <h2>Filter Form <small>Summary</small></h2>
-            <ul class="nav navbar-right panel_toolbox">
-              <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
-              </li>
-              <li class="dropdown">
-                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><i class="fa fa-wrench"></i></a>
-                <ul class="dropdown-menu" role="menu">
-                  <li><a href="#">Settings 1</a>
-                  </li>
-                  <li><a href="#">Settings 2</a>
-                  </li>
+            <div class="x_title">
+                <h2>Filter Form <small>Summary</small></h2>
+                <ul class="nav navbar-right panel_toolbox">
+                    <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                    </li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><i class="fa fa-wrench"></i></a>
+                        <ul class="dropdown-menu" role="menu">
+                            <li><a href="#">Settings 1</a>
+                            </li>
+                            <li><a href="#">Settings 2</a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li><a class="close-link"><i class="fa fa-close"></i></a>
+                    </li>
                 </ul>
-              </li>
-              <li><a class="close-link"><i class="fa fa-close"></i></a>
-              </li>
-            </ul>
-            <div class="clearfix"></div>
-          </div>
-	  <div class="x_content">
-		<br />
-		<form id="summary_filter" method='POST' name='form' action='{% url 'summary_search' %}' data-parsley-validate class="form-horizontal form-label-left">
-		  {% csrf_token %}
-		  <div class="form-group">
-		    <div class="col-md-4 col-sm-4 col-xs-6 col-sm-offset-2">
-		        <fieldset>
-	              <div class="control-group">
-	                <div class="controls">
-	                  <div class="col-md-11 xdisplay_inputx form-group has-feedback">
-	                    <input type="text" class="form-control has-feedback-left" id="from_date" placeholder="From Date" aria-describedby="inputSuccess2Status2" name='from_date'>
-	                    <span class="fa fa-calendar-o form-control-feedback left" aria-hidden="true"></span>
-	                    <span id="inputSuccess2Status2" class="sr-only">(success)</span>
-	                  </div>
-	                </div>
-	              </div>
-	            </fieldset>
-		    </div>
-		    <div class="col-md-4 col-sm-4 col-xs-6">
-		        <fieldset>
-	              <div class="control-group">
-	                <div class="controls">
-	                  <div class="col-md-11 xdisplay_inputx form-group has-feedback">
-	                    <input type="text" class="form-control has-feedback-left" id="to_date" placeholder="To Date" aria-describedby="inputSuccess2Status2" name='to_date'>
-	                    <span class="fa fa-calendar-o form-control-feedback left" aria-hidden="true"></span>
-	                    <span id="inputSuccess2Status2" class="sr-only">(success)</span>
-	                  </div>
-	                </div>
-	              </div>
-	            </fieldset>
-		    </div>
-        
-		  </div>
-          <div class="col-md-3 col-sm-3 col-xs-6 col-sm-offset-11">
-          	<button id='summary_search' type="submit" class="btn btn-success">Search</button>
-          </div>
-	    </form>
-      </div>
+                <div class="clearfix"></div>
+            </div>
+            <div class="x_content">
+                <br />
+                <form id="summary_filter" method='POST' name='form' action='{% url "summary_search" %}' data-parsley-validate class="form-horizontal form-label-left">
+                    {% csrf_token %}
+                    <div class="form-group">
+
+                        <div class="row">
+                            <div class="col-md-3 col-sm-3 col-xs-12">
+                                <fieldset>
+                                    <div class="control-group">
+                                        <div class="controls">
+                                            <div class="col-md-11 xdisplay_inputx form-group has-feedback">
+                                                <input type="text" class="form-control has-feedback-left" id="from_date" placeholder="From Date" aria-describedby="inputSuccess2Status2" name='from_date'>
+                                                <span class="fa fa-calendar-o form-control-feedback left" aria-hidden="true"></span>
+                                                <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </fieldset>
+                            </div>
+                            <div class="col-md-3 col-sm-3 col-xs-12">
+                                <fieldset>
+                                    <div class="control-group">
+                                        <div class="controls">
+                                            <div class="col-md-11 xdisplay_inputx form-group has-feedback">
+                                                <input type="text" class="form-control has-feedback-left" id="to_date" placeholder="To Date" aria-describedby="inputSuccess2Status2" name='to_date'>
+                                                <span class="fa fa-calendar-o form-control-feedback left" aria-hidden="true"></span>
+                                                <span id="inputSuccess2Status2" class="sr-only">(success)</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </fieldset>
+                            </div>
+                        </div>
+                        <div class = "row">
+                            <div class="col-md-2 col-sm-2 col-xs-12">
+                                <label >Plants:</label>
+                                <select class="form-control" id="summary_plant" required>
+
+<!--                                     <option  disabled >Plant</option>
+ -->                                 <option   selected>All</option>
+                                    {% for plant in plants %}
+                                    <option value="{{plant.id}}">{{plant.plant_name}}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-2 col-sm-2 col-xs-12">
+                               <label >Market:</label>
+                                <select class="form-control" id="summary_market" disabled>
+                                    <option selected>All</option>
+                                </select>
+
+                            </div>
+                            <div class="col-md-2 col-sm-2 col-xs-12">
+                               <label >Basemodels:</label>
+                                <select class="form-control" id="summary_basemodel" disabled>
+                                    <option  selected>All</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2 col-sm-2 col-xs-12">
+                               <label >Models:</label>
+
+                                <select class="form-control" id="summary_model" disabled>
+                                    <option  selected>All</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2 col-sm-2 col-xs-12">
+                               <label >Stations:</label>
+
+                                <select class="form-control" id="summary_station" disabled>
+                                    <option   selected>All</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2 col-sm-2 col-xs-12">
+                               <label >Shift:</label>
+
+                                <select class="form-control" id="summary_shift" disabled>
+                                    <option   selected>All</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3 col-sm-3 col-xs-6 col-sm-offset-11">
+                                <button id='summary_search' type="submit" class="btn btn-success">Search</button>
+                            </div>
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+        </div>
     </div>
-  </div>
 </div>
 
 {% block script %}
 <script type="text/javascript">
-
-$("#summary_search").click(function(e){
-      e.preventDefault();
-
-      var frm = $(this).closest('form');
-
-      $.ajax({
-        "type": frm.attr('method'),
-        "url": frm.attr('action'),
-        "data" : frm.serialize(),
-        success: function(data) {
-            $("#summary_table").html(data);
-        },
+    $.ajaxSetup({
+        beforeSend: function(xhr, settings) {
+            function getCookie(name) {
+                var cookieValue = null;
+                if (document.cookie && document.cookie != '') {
+                    var cookies = document.cookie.split(';');
+                    for (var i = 0; i < cookies.length; i++) {
+                        var cookie = jQuery.trim(cookies[i]);
+                        if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+            if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+                xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+            }
+        }
     });
-  });
-/* Generating CSRF-TOKEN for AJAX POST*/
-$.ajaxSetup({
-     beforeSend: function(xhr, settings) {
-         function getCookie(name) {
-             var cookieValue = null;
-             if (document.cookie && document.cookie != '') {
-                 var cookies = document.cookie.split(';');
-                 for (var i = 0; i < cookies.length; i++) {
-                     var cookie = jQuery.trim(cookies[i]);
-                     // Does this cookie string begin with the name we want?
-                     if (cookie.substring(0, name.length + 1) == (name + '=')) {
-                         cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                         break;
-                     }
-                 }
-             }
-             return cookieValue;
-         }
-         if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
-             // Only send the token to relative URLs i.e. locally.
-             xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
-         }
-     }
+
+
+    $("#summary_search").click(function(e) {
+        e.preventDefault();
+        /*var ele = document.getElementById("summary_plant");
+        var plant = ele.options[ele.selectedIndex].value;
+
+*/      var plant = $("#summary_plant").val();
+        var from_date = $("#from_date").val();
+        var to_date = $("#to_date").val();
+        var market = $("#summary_market").val();
+        var basemodel = $("#summary_basemodel").val();
+        var model = $("#summary_model").val();
+        var station = $("#summary_station").val();
+        var shift = $("#summary_shift").val();
+        // alert(plant)
+
+        
+        $.ajax({
+            "type": "POST",
+            "url": '{% url "summary_search" %}',
+            "data": {"plant":plant, "from_date":from_date,"to_date":to_date,"market":market,"basemodel":basemodel,"model":model,"station":station,"shift":shift},
+            "datatype": "json",
+            success: function(data) {
+                $("#summary_table").html(data);
+            },
+        });
+    });
+
+ $(function(){
+ // var plant = $("#summary_plant").val();
+// alert(plant)
+$("#summary_plant").val('All');
+$("#summary_market").prop('disabled', true);
+$("#summary_basemodel").prop('disabled', true);
+$("#summary_model").prop('disabled', true);
+$("#summary_station").prop('disabled', true);
+$("#summary_shift").prop('disabled', true);
+
+ });
+</script>
+
+<script type="text/javascript">
+    $('#summary_plant').change(function() {
+    post_filter_form();
+    document.getElementById("summary_market").options.length = 1;
+    document.getElementById("summary_basemodel").options.length = 1;
+    document.getElementById("summary_model").options.length = 1;
+    document.getElementById("summary_station").options.length = 1;
+    document.getElementById("summary_shift").options.length = 1;
+
 });
+function summary_filter_refresh(){
+    $('#summary_market').val("");
+    $('#summary_basemodel').val("");
+    $('#summary_model').val("");
+    $('#summary_station').val("");
+    $('#summary_shift').val("");
+}
+
+
+function post_filter_form(){
+    // summary_filter_refresh();
+    var e = document.getElementById("summary_plant");
+    var plant = e.options[e.selectedIndex].value;
+    $.ajax({
+        "type": "POST",
+        "url": '{% url 'summary_filter' %}',
+        "data" : {"plant":plant},
+        success: function(data) {
+            // $(htmlDropDown).empty();
+          $("#summary_market").prop('disabled', false);
+         var htmlDropDown = $("#summary_market");
+            $.each(data.market, function (index, item) {
+                htmlDropDown.append(
+                       $('<option/>', {
+                           value: item.market__id,
+                           text: item.market__description
+                       })
+                       );
+            });
+            $("#summary_market").dropdown();
+            $("#summary_basemodel").prop('disabled', false);
+         var htmlDropDown = $("#summary_basemodel");
+            $.each(data.basemodel, function (index, item) {
+                htmlDropDown.append(
+                       $('<option/>', {
+                           value: item.base_models__id,
+                           text: item.base_models__description
+                       })
+                       );
+            });
+            $("#summary_basemodel").dropdown();
+            $("#summary_model").prop('disabled', false);
+         var htmlDropDown = $("#summary_model");
+            $.each(data.model, function (index, item) {
+                htmlDropDown.append(
+                       $('<option/>', {
+                           value: item.id,
+                           text: item.description
+                       })
+                       );
+            });
+            $("#summary_model").dropdown();
+            $("#summary_station").prop('disabled', false);
+         var htmlDropDown = $("#summary_station");
+            $.each(data.station, function (index, item) {
+                htmlDropDown.append(
+                       $('<option/>', {
+                           value: item.id,
+                           text: item.description
+                       })
+                       );
+            });
+            $("#summary_station").dropdown();
+            $("#summary_shift").prop('disabled', false);
+         var htmlDropDown = $("#summary_shift");
+            $.each(data.shift, function (index, item) {
+                htmlDropDown.append(
+                       $('<option/>', {
+                           value: item.id,
+                           text: item.description
+                       })
+                       );
+            });
+            $("#summary_shift").dropdown();
+ 
+        },
+        complete: function() {
+        }
+    });
+
+}
+
 </script>
 {% endblock %}

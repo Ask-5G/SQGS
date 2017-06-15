@@ -17,6 +17,14 @@ from reports.views import get_queryset
 class VinDetailsView(APIView):        
 
     authentication_classes = (SQGSTokenAuthentication,)
+    def _assign_values(self, request):
+        self.vin_num = request.data.get('vin')
+        self.models = Models.objects.get(id=request.data.get('model'))
+        self.users = Users.objects.get(id=request.data.get('users'))
+        self.stations = Stations.objects.get(id=request.data.get('stations'))
+        self.shifts = Shifts.objects.get(id=request.data.get('shift'))
+        self.plants = Plants.objects.get(id=request.data.get('plant'))
+        self.vin_order = request.data.get('vin_order')
 
     def cmd_verification(self, vindetails, stations):
         verification = Verification(
@@ -24,23 +32,26 @@ class VinDetailsView(APIView):
             stations = stations,
             defects_count = 0,
             closure_count = 0,
-            status = 'RFT NOT OK'
+            status = 'RFT OK'
             )
         verification.save()
 
     def vin_create(self, vin_num, models, users, stations, shifts, plants, vin_order):
-        vindetails = VinDetails(
-            vin = vin_num, 
-            model = models, 
-            users = users,
-            stations = stations,
-            shift = shifts,
-            plant = plants,
-            vin_order = vin_order
-         )
-        vindetails.save()
-        self.cmd_verification(vindetails, stations)
-        return vindetails
+        try:
+            vindetails = VinDetails(
+                vin = vin_num,
+                model = models,
+                users = users,
+                stations = stations,
+                shift = shifts,
+                plant = plants,
+                vin_order = vin_order
+                )
+            vindetails.save()
+            self.cmd_verification(vindetails, stations)
+            return vindetails
+        except Exception as e:
+            print '%s (%s)' % (e.message, type(e))
 
     def get(self, request, format=None):
         vindetails = get_queryset(request, VinDetails)
@@ -48,62 +59,70 @@ class VinDetailsView(APIView):
         return Response({'vin_details': serializer.data})
 
     def post(self, request, format=None):
-        vin_num = request.data.get('vin')
-        models = Models.objects.get(id=request.data.get('model'))
-        users = Users.objects.get(id=request.data.get('users'))
-        stations = Stations.objects.get(id=request.data.get('stations'))
-        shifts = Shifts.objects.get(id=request.data.get('shift'))
-        plants = Plants.objects.get(id=request.data.get('plant'))
-        vin_order = request.data.get('vin_order')
-        vin_obj = VinDetails.objects.filter(vin=vin_num)
-        if stations.description != 'Final Inspection':
-            if len(vin_obj) != 0:
-                for vin in vin_obj:
-                    inspection_defects = InspectionDefects.objects.filter(vin=vin.id)
-                    defects = inspection_defects.values_list('id', flat=True)
-                    defect_closure = DefectClosure.objects.filter(inspection_defects__in=defects)
-                    if inspection_defects.count() == defect_closure.count():
-                        Verification.objects.filter(vin=vin.id, stations=vin.stations).update(defects_count = inspection_defects.count(),\
-                            closure_count = defect_closure.count(),status='RFT OK')
-                    else:
-                        Verification.objects.filter(vin=vin.id, stations=vin.stations).update(defects_count = inspection_defects.count(),\
-                            closure_count = defect_closure.count(),status='RFT NOT OK')
-                vindetails = self.vin_create(vin_num, models, users, stations, shifts, plants, vin_order)
-                vin_list = vin_obj.values_list('id', flat=True)
-                tot_defects = InspectionDefects.objects.filter(vin__in=vin_list).count()
-                tot_closure = DefectClosure.objects.filter(inspection_defects__vin__in=vin_list).count()
-                if tot_defects == tot_closure:
-                    rep_status = 'RFT OK'
-                else:
-                    rep_status = 'RFT NOT OK'
+        self._assign_values(request)
+        vin_obj = VinDetails.objects.filter(vin=self.vin_num)
+        # vin_num = request.data.get('vin')
+        # models = Models.objects.get(id=request.data.get('model'))
+        # users = Users.objects.get(id=request.data.get('users'))
+        # stations = Stations.objects.get(id=request.data.get('stations'))
+        # shifts = Shifts.objects.get(id=request.data.get('shift'))
+        # plants = Plants.objects.get(id=request.data.get('plant'))
+        # vin_order = request.data.get('vin_order')
+        # vin_obj = VinDetails.objects.filter(vin=vin_num)
+        # modelstations = ModelStations.objects.get(model=request.data.get('model'),station=request.data.get('stations'))
+        # if not modelstations.is_final:
+        #     if len(vin_obj) != 0:
+        #         for vin in vin_obj:
+        #             inspection_defects = InspectionDefects.objects.filter(vin=vin.id)
+        #             defects = inspection_defects.values_list('id', flat=True)
+        #             defect_closure = DefectClosure.objects.filter(inspection_defects__in=defects)
+        #             if inspection_defects.count() == defect_closure.count():
+        #                 Verification.objects.filter(vin=vin.id, stations=vin.stations).update(defects_count = inspection_defects.count(),\
+        #                     closure_count = defect_closure.count(),status='RFT OK')
+        #             else:
+        #                 Verification.objects.filter(vin=vin.id, stations=vin.stations).update(defects_count = inspection_defects.count(),\
+        #                     closure_count = defect_closure.count(),status='RFT NOT OK')
+        #         vindetails = self.vin_create(vin_num, models, users, stations, shifts, plants, vin_order)
+        #         vin_list = vin_obj.values_list('id', flat=True)
+        #         tot_defects = InspectionDefects.objects.filter(vin__in=vin_list).count()
+        #         tot_closure = DefectClosure.objects.filter(inspection_defects__vin__in=vin_list).count()
+        #         if tot_defects == tot_closure:
+        #             rep_status = 'RFT OK'
+        #         else:
+        #             rep_status = 'RFT NOT OK'
                 
-                vin_status = VinStatus.objects.filter(vin=vin_num).update(
-                    tot_defects = tot_defects,
-                    tot_closure = tot_closure,
-                    status = rep_status
-                    )
-            else:
-                vindetails = self.vin_create(vin_num, models, users, stations, shifts, plants, vin_order)
-                vin_status = VinStatus(
-                    vin = vin_num,
+        #         vin_status = VinStatus.objects.filter(vin=vin_num).update(
+        #             tot_defects = tot_defects,
+        #             tot_closure = tot_closure,
+        #             status = rep_status
+        #             )
+        #     else:
+        #         vindetails = self.vin_create(vin_num, models, users, stations, shifts, plants, vin_order)
+        #         vin_status = VinStatus(
+        #             vin = vin_num,
+        #             tot_defects = 0,
+        #             tot_closure = 0,
+        #             status = 'RFT OK'
+        #             )
+        #         vin_status.save()
+        # else:
+        #     vindetails = self.vin_create(vin_num, models, users, stations, shifts, plants, vin_order)
+        if len(vin_obj) == 0:
+            vin_status = VinStatus(
+                    vin = self.vin_num,
                     tot_defects = 0,
                     tot_closure = 0,
-                    status = 'RFT NOT OK'
+                    status = 'RFT OK'
                     )
-                vin_status.save()
+            vin_status.save()
+
+        vindetails = self.vin_create(self.vin_num, self.models, self.users, self.stations, self.shifts, self.plants, self.vin_order)
+
+        if vindetails:
+            serializer = VinDetailsSerializer(vindetails)
+            return Response({'vin_details': serializer.data}, status=status.HTTP_201_CREATED)
         else:
-            vindetails = VinDetails(
-            vin = vin_num, 
-            model = models, 
-            users = users,
-            stations = stations,
-            shift = shifts,
-            plant = plants,
-            vin_order = vin_order
-            )
-            vindetails.save()
-        serializer = VinDetailsSerializer(vindetails)
-        return Response({'vin_details': serializer.data}, status=status.HTTP_201_CREATED)
+            return Response({'message': 'This Vin & Station combination already exists!'}, status=status.HTTP_400_BAD_REQUEST)
 
 class InspectionDefectsView(APIView):
     
@@ -182,14 +201,61 @@ class InspectionDefectsView(APIView):
 			checkpoints = self.checkpoints_obj, user = self.user_obj, created_time = self.created_time, updated_time = self.updated_time)
         self.inspection_defects.save()
         defects_count = InspectionDefects.objects.filter(vin=self.vin).count()
-        verication = Verification.objects.filter(vin=self.vin)
-        verication.update(defects_count=defects_count)
+        if defects_count > 0:
+            verification_status='RFT NOT OK'
+        else:
+            verification_status='RFT OK'
+        verication = Verification.objects.filter(vin=self.vin).update(defects_count=defects_count, status=verification_status)
+        vin_list = VinDetails.objects.filter(vin=self.vin_obj.vin).values_list('id', flat=True)
+        tot_defects = InspectionDefects.objects.filter(vin__in=vin_list).count()
+        tot_closure = DefectClosure.objects.filter(inspection_defects__vin__in=vin_list).count()
+
+        if tot_defects == tot_closure:
+            if len(vin_obj) != request.data.get('station'):
+                rep_status = 'RFT NOT OK'
+            else:
+                rep_status = 'RFT OK'
+        else:                                        
+            rep_status = 'RFT NOT OK'
+
+        vin_status = VinStatus.objects.filter(vin=self.vin_obj.vin).update(
+            tot_defects = tot_defects, 
+            tot_closure = tot_closure,
+            status = rep_status
+            )
+
         serializer = InspectionDefectsSerializer(self.inspection_defects)
         return Response({'inspection_defects':serializer.data}, status=status.HTTP_201_CREATED)
-		
+
 class DefectClosureView(APIView):
     
     authentication_classes = (SQGSTokenAuthentication,)
+
+    def _update_verification(self, defect_obj):
+        import pdb;pdb.set_trace()
+        vin_obj = VinDetails.objects.filter(id=defect_obj.vin.id)
+        open_defects = InspectionDefects.objects.filter(vin__in=vin_obj).count()
+        close_defects = DefectClosure.objects.filter(inspection_defects__vin__in=vin_obj).count()
+        if open_defects == close_defects:
+            verification_status = 'RFT OK'
+        else:
+            verification_status = 'RFT NOT OK'
+        Verification.objects.filter(vin=vin_obj).update(closure_count=close_defects, status=verification_status)
+
+    def _update_vin_status(self, defect_obj):
+        import pdb;pdb.set_trace()
+        vin_list = VinDetails.objects.filter(vin=defect_obj.vin.vin).values_list('id', flat=True)
+        tot_defects = InspectionDefects.objects.filter(vin__in=vin_list).count()
+        tot_closure = DefectClosure.objects.filter(inspection_defects__vin__in=vin_list).count()
+        if tot_defects == tot_closure:
+            vin_status = 'RFT OK'
+        else:
+            vin_status = 'RFT NOT OK'
+        vin_status_update = VinStatus.objects.filter(vin=defect_obj.vin.vin).update(
+        tot_defects = tot_defects, 
+        tot_closure = tot_closure,
+        status = vin_status
+        )
 
     def get(self, request, format=None):
         defectclosure = get_queryset(request, DefectClosure)
@@ -201,6 +267,9 @@ class DefectClosureView(APIView):
         serializer = DefectClosureSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
+            defect_obj = InspectionDefects.objects.get(id=request.data.get('inspection_defects'))
+            self._update_verification(defect_obj)
+            self._update_vin_status(defect_obj)
             return Response({'defect_closure': serializer.data}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -310,14 +379,7 @@ class FinalReportView(APIView):
             verify_status = 'RFT OK'
         else:
             verify_status = 'RFT NOT OK'
-        verification = Verification(
-            vin = vin_obj,
-            stations = stations,
-            defects_count = inspection_defects.count(),
-            closure_count = defect_closure.count(),
-            status = verify_status
-            )
-        verification.save()
+        verification = Verification.object.filter(vin=vin_obj.id).update(defects_count = inspection_defects.count(),closure_count = defect_closure.count(),status = verify_status)
         overall_status = self.find_overall_status(vin_num, final_status)
         final_rft = FinalRFT(
             vin = vin_num, 
@@ -330,8 +392,12 @@ class FinalReportView(APIView):
 
     
     def find_overall_status(self, vin_num, final_status):
-        vin = VinStatus.objects.get(vin = vin_num)
-        if vin.status == "RFT OK" and final_status == "RFT OK":
-            return "RFT OK"
-        else:
+        try:
+            vin = VinStatus.objects.get(vin = vin_num)
+            if vin.status == "RFT OK" and final_status == "RFT OK":
+                return "RFT OK"
+            else:
+                return "RFT NOT OK"
+        except Exception as e:
+            print '%s (%s)' % (e.message, type(e))
             return "RFT NOT OK"

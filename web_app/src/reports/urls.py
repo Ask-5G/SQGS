@@ -19,4 +19,6 @@ urlpatterns = [
 	url(r'^summary/search/$', SummarySearchView.as_view(), name='summary_search'),
 	url(r'^summary/vin/$', VinSummaryView.as_view(), name='vin_summary'),
 	url(r'^summary/vin_details/$', VinDetailsView.as_view(), name='vin_details'),
+	url(r'^summary/filter/$', SummaryfilterView.as_view(), name='summary_filter'),
+
 ]
