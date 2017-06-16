@@ -174,6 +174,9 @@ class InspectionDefectsView(APIView):
         except Exception as e:
             self.partdefects_obj = ''
 
+    # def _update_verification(self, defect_obj):
+
+
     def get(self, request, format=None):
         inspectiondefects = get_queryset(request, InspectionDefects)
         serializer = InspectionDefectsSerializer(inspectiondefects, many=True)
@@ -232,7 +235,6 @@ class DefectClosureView(APIView):
     authentication_classes = (SQGSTokenAuthentication,)
 
     def _update_verification(self, defect_obj):
-        import pdb;pdb.set_trace()
         vin_obj = VinDetails.objects.filter(id=defect_obj.vin.id)
         open_defects = InspectionDefects.objects.filter(vin__in=vin_obj).count()
         close_defects = DefectClosure.objects.filter(inspection_defects__vin__in=vin_obj).count()
@@ -243,7 +245,6 @@ class DefectClosureView(APIView):
         Verification.objects.filter(vin=vin_obj).update(closure_count=close_defects, status=verification_status)
 
     def _update_vin_status(self, defect_obj):
-        import pdb;pdb.set_trace()
         vin_list = VinDetails.objects.filter(vin=defect_obj.vin.vin).values_list('id', flat=True)
         tot_defects = InspectionDefects.objects.filter(vin__in=vin_list).count()
         tot_closure = DefectClosure.objects.filter(inspection_defects__vin__in=vin_list).count()
@@ -379,7 +380,7 @@ class FinalReportView(APIView):
             verify_status = 'RFT OK'
         else:
             verify_status = 'RFT NOT OK'
-        verification = Verification.object.filter(vin=vin_obj.id).update(defects_count = inspection_defects.count(),closure_count = defect_closure.count(),status = verify_status)
+        verification = Verification.objects.filter(vin=vin_obj.id).update(defects_count = inspection_defects.count(),closure_count = defect_closure.count(),status = verify_status)
         overall_status = self.find_overall_status(vin_num, final_status)
         final_rft = FinalRFT(
             vin = vin_num, 
